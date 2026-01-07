@@ -7,6 +7,7 @@
 ## ✨ Purpose
 
 This project helps you:
+
 - Mirror a clear folder structure across devices (Mac, PC, NAS, mobile)
 - Separate work, personal, academic, and business life cleanly
 - Archive important documents (tax, legal, healthcare, IDs, etc.)
@@ -29,6 +30,7 @@ It’s your **atlas** for navigating digital life.
 ---
 
 ## 🗂 Folder Structure (Overview)
+
 life-atlas/
 ├── device-schemas/
 │   ├── macbook-personal.md
@@ -55,20 +57,20 @@ life-atlas/
 ├── .gitignore
 └── README.md
 
+## Streamlined Life Atlas Schema
 
-# Streamlined Life Atlas Schema
-
-## 🎯 Clean Structure Design
+### 🎯 Clean Structure Design
 
 Based on your feedback, here's the streamlined approach that eliminates confusion:
 
-### Key Changes
+#### Key Changes
+
 - **Consolidate everything** under `~/Kit/` on MacBook
 - **Remove LiveDocs** concept entirely
 - **Move Photos** into Kit for regular sync
 - **Perfect 1:1 mapping** between MacBook and NAS
 
-## 📱 MacBook Pro (Personal) — Streamlined Structure
+### 📱 MacBook Pro (Personal) — Streamlined Structure
 
 ```
 ~/
@@ -86,7 +88,8 @@ Based on your feedback, here's the streamlined approach that eliminates confusio
 └── Vault/ → /Volumes/Vault/  # ❄️ NAS-mounted cold storage (read-only)
 ```
 
-### Migration Strategy
+#### Migration Strategy
+
 - **Move** `~/Workspace/` → `~/Kit/Workspace/`
 - **Move** `~/Media/Photos/` → `~/Kit/Photos/`
 - **Move** `~/System/` → `~/Kit/System/`
@@ -144,12 +147,13 @@ Based on your feedback, here's the streamlined approach that eliminates confusio
 ## 🔄 Streamlined Sync Strategy
 
 | Location | Mac Path | NAS Path | Sync Method | Direction | Notes |
-|----------|----------|----------|-------------|-----------|-------|
+| --- | --- | --- | --- | --- | --- |
 | **Complete Kit** | `~/Kit/` | `/home/Kit/` | Syncthing/rsync | ↔ Bidirectional | Everything in one sync |
 | **Cold Archive** | `~/Vault/` (mounted) | `/home/Vault/` | NAS mount | ← Read-only | Browse/retrieve only |
 | **System Backup** | `~/` (entire system) | `/volume1/Time Machine A/` | Time Machine | → Mac to NAS | Automatic |
 
 ### Sync Simplification Benefits
+
 - **Single sync point**: Only `~/Kit/` needs active syncing
 - **Photos included**: No separate media sync workflow needed  
 - **Consistent structure**: Identical paths reduce confusion
@@ -225,6 +229,7 @@ echo "Kit sync completed - all folders synchronized"
 ```
 
 ### Syncthing Configuration
+
 ```yaml
 # Syncthing folder configuration
 folder_id: "kit-sync"
@@ -245,18 +250,21 @@ keep_versions: 10
 ## 📋 Streamlined Workflows
 
 ### Photo Management Workflow
+
 1. **Import**: DSLR/drone content directly to `~/Kit/Photos/YYYY/`
 2. **Process**: Edit in Lightroom/Photoshop (library stays in Kit)
 3. **Sync**: Automatically synced to NAS via Kit sync
 4. **Archive**: Move older/processed content to `Vault/MediaArchive/` when needed
 
 ### Document Lifecycle
+
 1. **Active**: All documents in `~/Kit/Docs/`
 2. **Organized**: Use subfolders (Identity/, Health/, Finance/, Legal/)
 3. **Archive**: Move to `Vault/DocsArchive/` when no longer active
 4. **Access**: Browse archived docs via mounted `~/Vault/`
 
 ### Project Lifecycle
+
 1. **Active**: All projects in `~/Kit/Workspace/`
 2. **Complete**: Archive to `Vault/WorkspaceArchive/YYYY/`
 3. **Git repos**: Can stay in Workspace if still referenced
@@ -264,21 +272,24 @@ keep_versions: 10
 ## 🔧 Tool Configurations
 
 ### Syncthing Configuration
+
 - **Device ID**: Link MacBook with NAS
 - **Folder**: `~/Kit/` ↔ `/home/andrewhml/Kit/`
-- **Ignore Patterns**: 
+- **Ignore Patterns**:
   - `Temp/*`
   - `*.tmp`
   - `.DS_Store`
   - `node_modules/`
 
 ### NAS Mount Script (macOS)
+
 ```bash
 # Add to login items or crontab
 mount_smbfs //andrewhml@nas-ip/andrewhml/Vault ~/Vault
 ```
 
 ### Backup Verification Script
+
 ```bash
 #!/bin/bash
 # Verify critical folders are synced
