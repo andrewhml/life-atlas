@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/worktrees/
+
+# Session scratch (should not be committed; processed by /session-end)
+docs/session-scratch.md
+
+# OS temp
+Thumbs.db
+desktop.ini
