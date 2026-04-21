@@ -1,5 +1,5 @@
 ---
-description: Find repo drift — empty stubs, broken links, legacy term references, OS cruft
+description: Scan the life-atlas repo for drift. Use when the user wants to verify docs are consistent, asks "does this still line up," or before a big commit. Finds empty stubs, broken markdown cross-references, legacy term references (Kit/, LiveDocs/, Vault/), and OS cruft.
 ---
 
 # /audit

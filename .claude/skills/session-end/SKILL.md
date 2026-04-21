@@ -1,5 +1,5 @@
 ---
-description: Process session observations into GitHub issues, stage and commit changes, push branch
+description: Wrap up a life-atlas work session. Process docs/session-scratch.md into labeled GitHub issues, stage and commit, push the branch. Use when the user signals they're done, wrapping up, or stepping away — not only when they explicitly say "session end".
 ---
 
 # Session End

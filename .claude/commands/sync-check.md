@@ -1,5 +1,5 @@
 ---
-description: Verify filesystem matches documented schemas — check cloud drive, NAS mount, legacy paths
+description: Verify the current workstation's filesystem matches life-atlas schemas. Use when setting up a new device, after reconfiguring a sync tool, or when the user asks "is everything in the right place." Checks cloud drive subfolders, local workspace and pictures paths, NAS mount, and flags legacy paths.
 ---
 
 # /sync-check
