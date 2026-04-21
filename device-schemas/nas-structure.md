@@ -1,121 +1,82 @@
-# 📦 UGREEN NAS — Device Schema
+# 📦 UGREEN NAS (Peddocks2) — Device Schema
 
-This document defines the folder structure and role of the UGREEN NAS in the `life-atlas` system.
+Folder structure and role of the NAS in the `life-atlas` system.
 
----
-
-## 🔧 NAS Paths Overview
-
-```
-/home/andrewhml/
-├── Kit/                        # Mirror of MacBook's working environment
-└── Vault/                      # Long-term cold storage (not on Mac)
-
-/volume1/
-├── Media/
-│   ├── books/
-│   ├── downloads/
-│   ├── movies/
-│   ├── music/
-│   ├── photos/
-│   └── tvshows/
-├── docker/                     # Containers (e.g. Plex, Immich)
-└── Time Machine A/             # Time Machine backup for MacBook
-```
+See the main [README](../README.md) for Atlas structure and sync topology.
 
 ---
 
-## 🎒 Kit (Live Working Files)
+## 🔧 NAS Paths
 
-This folder is kept in sync with the MacBook's `~/Kit/` directory.
+- **Hostname:** `Peddocks2`
+- **Atlas mirror (from Mac, via SMB):** `/Volumes/personal_folder/Atlas`
+- **Shared media, docker, Time Machine:** exposed as separate SMB shares
 
-```
-Kit/
-├── Docs/
-├── Workspace/
-├── Config/
-├── System/
-└── Temp/
-```
-
-> Use rsync or Syncthing to maintain this mirror. Kit contains actively used and frequently updated files.
+> Internal NAS paths (e.g., `/volume1/...`) depend on the UGREEN volume layout. Confirm via the NAS admin panel before scripting against them.
 
 ---
 
-## 🧊 Vault (Archive Storage)
+## ☁️ Atlas Mirror
 
-Used exclusively for archiving documents, photos, or projects that are no longer needed on the MacBook.
+`/Volumes/personal_folder/Atlas` mirrors `~/Atlas/` (Google Drive) via UGREEN Cloud Drive.
 
-```
-Vault/
-├── DocsArchive/
-│   ├── Taxes/
-│   ├── Identity/
-│   └── Legal/
-├── WorkspaceArchive/
-├── MediaArchive/
-└── Snapshots/
-```
+- **Role:** Local-network backup of Atlas content
+- **Direction:** Bidirectional with Google Drive (cloud remains master)
+- **Why it exists:** Faster-than-internet restore, offline access during outages
 
-> Vault is not mounted on the Mac. It is accessible via NAS-only. Archive from `Kit/` manually or via scheduled scripts.
+See main README for the content layout.
 
 ---
 
 ## 🎞️ Media Library
 
-All Plex-readable or long-form media lives here:
+Separate from Atlas. Holds Plex-readable content and archived photo/video originals.
 
 ```
-/volume1/Media/
-├── books/
-├── downloads/
-├── movies/
-├── music/
-├── photos/
-└── tvshows/
+Media/
+├── books/           # PDFs, eBooks
+├── downloads/       # Staging / incoming
+├── movies/          # Plex movies
+├── music/           # Plex music
+├── photos/          # Archived DSLR/drone content (moved from ~/Pictures/)
+└── tvshows/         # Plex TV
 ```
 
-- **Photos**: Archived DSLR and drone footage from `Media/Photos/YYYY`
-- **Music/Movies/TV**: Plex libraries
-- **Books**: PDFs/eBooks
+---
+
+## 🛠️ Services
+
+Hosted via Docker on the NAS:
+
+- **Plex** — media server for `Media/`
+- **Immich** — self-hosted photo management
+- **Nginx Proxy Manager** — reverse proxy / TLS
+- **Portainer** — container management UI
 
 ---
 
 ## 🔁 Sync Strategy Summary
 
-| Folder             | Sync Direction      | Method          | Notes                     |
-|--------------------|---------------------|------------------|----------------------------|
-| `Kit/`             | Mac ↔ NAS           | rsync / Syncthing | Active work folder        |
-| `Vault/`           | NAS only            | Manual add/move | Cold storage archive      |
-| `Media/photos/`    | Mac → NAS           | Manual archive  | DSLR + drone content only |
-| `Time Machine A/`  | Mac → NAS           | macOS native    | System-wide backup        |
+| Source | Destination | Method | Direction |
+|---|---|---|---|
+| Google Drive (cloud) | Mac `~/Atlas/` | Google Drive desktop app | ↔ |
+| Mac `~/Atlas/` | NAS `/Volumes/personal_folder/Atlas/` | UGREEN Cloud Drive | ↔ |
+| Mac `~/` (entire system) | NAS Time Machine share | Time Machine | → |
+| Mac `~/Pictures/YYYY-Photos/` (archived) | NAS `Media/photos/` | Manual rsync | → |
 
 ---
 
-## 🛠️ Docker Volume
+## ✅ Permissions
 
-```
-/volume1/docker/
-```
-
-Used for container data, including:
-- Plex
-- Immich (photos)
-- Nginx Proxy Manager
-- Other apps managed via Portainer
-
----
-
-## ✅ Permissions Strategy
-
-- Shared folders under `/volume1/Media` should be group-readable by Plex
-- Personal folders like `/home/andrewhml/` should be accessible only to the user account
-- Use separate users or groups for automation scripts if needed
+- **Media share** — group-readable by Plex and household users
+- **personal_folder** — user-only (`andrewhml`)
+- Use separate service accounts for automation rather than the primary user
 
 ---
 
 ## 📝 Notes
 
-- `Vault/` is your master archive; nothing ever syncs it *back* to the Mac
-- DSLR content is archived manually from Mac → NAS
-- Mac setup script should mount `Time Machine A` and sync `Kit/` on boot/login
+- Atlas on the NAS is a **mirror**, not the source of truth. Google Drive is the master.
+- Time Machine covers `~/Atlas/` redundantly with Google Drive — intentional (different failure modes).
+- Archival from `~/Pictures/` to `Media/photos/` is manual, performed when a year's content is considered complete.
+- Internal volume paths (`/volume1/...`) are not enumerated here because they vary by NAS configuration; refer to the UGREEN admin UI when scripting.

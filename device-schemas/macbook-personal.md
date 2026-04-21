@@ -1,6 +1,8 @@
 # 💻 MacBook Pro (Personal) — Device Schema
 
-This document defines the folder structure, local vs. NAS-based storage strategy, media handling, and environment setup for my **personal MacBook Pro** under the `life-atlas` system.
+Folder layout and environment setup for a personal MacBook Pro under the `life-atlas` system.
+
+See the main [README](../README.md) for Atlas structure and sync topology.
 
 ---
 
@@ -9,116 +11,105 @@ This document defines the folder structure, local vs. NAS-based storage strategy
 ```
 ~/
 ├── Applications/             # App-specific config/data
+├── Atlas/                    # ☁️ Google-Drive-synced (see README)
 ├── Desktop/                  # Ephemeral, cleared weekly
 ├── Documents/                # Default macOS folder (mostly unused)
-├── Downloads/                # Inbound items only, triaged regularly
-├── Workspace/                # 🔨 Active projects (personal, work, consulting, academic)
-├── LiveDocs/                 # 🧩 Frequently accessed important documents
-├── Media/
-│   └── Photos/               # DSLR + drone imports (see below)
-├── System/                   # ⚙️ Dotfiles, scripts, preferences
-└── Vault/ → /Volumes/Vault/  # ❄️ NAS-mirrored long-term archive (cold storage)
+├── Downloads/                # Inbound items, triaged regularly
+├── Library/                  # macOS default
+├── Movies/                   # macOS default
+├── Music/                    # macOS default
+├── Pictures/                 # 🖼️ DSLR + drone imports, editing libraries
+└── workspace/                # 🔨 Code repositories (local, git-managed)
 ```
+
+> `~/Atlas/` is managed by the Google Drive desktop app. Do not edit scripts or schemas as if this repo manages Atlas contents directly — it does not.
 
 ---
 
-## 🔥 LiveDocs
+## 🖼️ Pictures (Photo & Video)
 
-`~/LiveDocs/` is for **time-sensitive or frequently used documents** — it's backed up and kept minimal.
+Local only. Not synced to Atlas due to size and volatility. Archived to NAS manually when a year is complete.
 
 ```
-LiveDocs/
-├── Identity/
-├── Health/
-├── Finance/
-│   ├── 2025 Taxes/
-│   └── Statements/
-├── Government/
-├── Legal/
-└── Active Docs/         # Temporary or recent material
+Pictures/
+├── YYYY-Photos/                 # Yearly photo structure
+│   ├── RAW/
+│   │   └── YYYY-MM/             # Monthly import folders
+│   ├── Processed/               # Lightroom exports
+│   └── Video/
+├── Lightroom-Library/           # .lrcat and previews
+└── Photos Library.photoslibrary # Apple Photos (macOS default)
 ```
 
-> Documents here are archived to the NAS (`Vault/DocsArchive/`) when no longer in frequent use.
+> Run `environment/macos_create_photo_year.sh YYYY` to scaffold a new year folder.
 
 ---
 
-## 🖼️ Media (Photo & Video Ingest)
+## 🔨 workspace
 
-Only **photography and drone footage** are kept locally. All other media (TV, music, etc.) lives on the NAS.
+Local code repositories. Managed by git / GitHub.
 
 ```
-Media/
-└── Photos/
-    ├── 2025 Photos/              # Template for each year
-    │   ├── DNG/
-    │   ├── JPG/
-    │   ├── RAW/
-    │   └── Video/
-    ├── 2024 Photos/
-    │   └── ...
-    ├── Lightroom Library/        # .lrcat and previews
-    └── Apple Photos Library/     # macOS library bundle
+workspace/
+├── personal/        # Personal projects (this repo, kitted, etc.)
+└── work/            # Work-adjacent projects
 ```
 
-> Year folders can be duplicated as templates. External drives or NAS are used for long-term archival.
+> Separate from `~/Atlas/workspace/`, which holds non-code projects in Google Drive. Syntheus consulting code lives in the Syntheus company Google Drive, not here.
 
 ---
 
 ## 🔁 Sync & Backup Strategy
 
-| Folder        | Method             | Notes |
-|---------------|---------------------|-------|
-| `Workspace/`  | iCloud Drive + Git  | Active projects; version-controlled where possible |
-| `LiveDocs/`   | iCloud Drive        | Critical, frequently used documents |
-| `Media/Photos/`| Time Machine + Manual NAS backup | Only DSLR/drone content is local |
-| `Vault/`      | NAS-mounted         | Full cold storage archive, synced from Mac periodically |
-| `System/`     | GitHub repo         | Dotfiles and setup scripts live in `life-atlas` |
+| Folder | Method | Notes |
+|---|---|---|
+| `~/Atlas/` | Google Drive + NAS mirror | See main README |
+| `~/workspace/` | Git / GitHub | Per-repo |
+| `~/Pictures/` | Time Machine + manual NAS archive | Local-only until archived |
+| `~/` (entire system) | Time Machine → Peddocks2 | Automatic |
 
 ---
 
 ## ⚙️ Environment Setup
 
-| Tool                | Purpose |
-|---------------------|---------|
-| **VS Code**         | Primary editor (w/ ChatGPT, Claude Code, Continue.dev) |
-| **Homebrew**        | Package manager |
-| **Warp Terminal**   | AI-powered terminal with autocomplete, blocks, and Claude integration |
-| **Zsh + Oh My Zsh** | Shell + aliases |
-| **Git + GitHub CLI**| Version control |
-| **Raycast**         | Productivity + AI |
-| **Obsidian** (opt.) | Light note vaulting |
-| **Photoshop / Lightroom** | Media post-processing |
+| Tool | Purpose |
+|---|---|
+| VS Code | Primary editor |
+| Claude Code | AI coding assistant (CLI + IDE integration) |
+| Homebrew | Package manager |
+| Warp Terminal | AI-powered terminal |
+| Zsh + Oh My Zsh | Shell + aliases |
+| Git + GitHub CLI | Version control |
+| Raycast | Productivity + AI |
+| Lightroom / Photoshop | Media post-processing |
 
 ---
 
 ## 🤖 AI Tooling
 
-| Tool            | Integration |
-|------------------|-------------|
-| **GitHub Copilot**   | Inline code suggestions in VS Code |
-| **Continue.dev**     | Claude & GPT-4 inside VS Code |
-| **Claude Code**      | Claude’s AI coding assistant (via web or integrated apps) |
-| **ChatGPT**          | Prompt-based support and system planning |
-| **Raycast AI**       | Quick lookup, summarization, command building |
-| **Warp Terminal AI** | Built-in Claude-powered terminal blocks and suggestions |
+| Tool | Integration |
+|---|---|
+| Claude Code | Claude's coding assistant, this repo's primary AI surface |
+| GitHub Copilot | Inline suggestions in VS Code |
+| Raycast AI | Quick lookup, summarization |
+| Warp Terminal AI | Claude-powered terminal blocks |
+| ChatGPT | Prompt-based planning and drafting |
 
 ---
 
 ## 🔐 Security & Backup Layers
 
-| Tool / Method       | Use |
-|---------------------|-----|
-| **Bitwarden**       | Secrets and 2FA |
-| **iCloud Drive**    | Documents, Workspace sync |
-| **Time Machine**    | Full local backup to SSD |
-| **NAS (UGREEN)**    | Media + vault archive, mounted at `~/Vault/` |
-| **Manual Rsync**    | Used for selective syncing to/from NAS if needed |
+| Tool / Method | Use |
+|---|---|
+| Bitwarden | Secrets and 2FA |
+| Google Drive | Atlas sync (cloud master) |
+| Time Machine | Full local backup to NAS |
+| Peddocks2 NAS | Time Machine destination + Atlas backup mirror |
 
 ---
 
 ## 📝 Notes
 
-- This schema is customized for creative work, project development, and personal organization.
-- DSLR and drone photo/video content are kept locally until processed or archived.
-- Vault is **not stored locally** — it’s mounted from the NAS at login via auto-mount or alias.
-- For new device setup, follow `environment/mac-setup.md`.
+- For new-device setup, install the Google Drive desktop app first so `~/Atlas/` populates before running any scripts.
+- DSLR / drone originals stay in `~/Pictures/` until a year is archived to the NAS Media share.
+- Any configuration meant to travel between devices should live in `~/Atlas/config/`, not in local dotfiles alone.
