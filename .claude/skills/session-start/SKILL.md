@@ -1,5 +1,5 @@
 ---
-description: Start a new session — load context, check project status, orient
+description: Orient at the start of a life-atlas session. Check git state, list open GitHub issues, surface active plans in docs/plans/, initialize docs/session-scratch.md. Use when the user is beginning or resuming work on the repo, even without saying "session start" explicitly.
 ---
 
 # Session Start

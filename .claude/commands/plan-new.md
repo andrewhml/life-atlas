@@ -1,5 +1,5 @@
 ---
-description: Scaffold a new plan file in docs/plans/ using the life-atlas plan template
+description: Create a new multi-phase plan file in docs/plans/. Use when the user says "write a plan," "let's plan this out," "draft an approach," or starts multi-phase work that needs structured tracking. Generates sequentially numbered plan file from the template (goal, phases, risks, open questions).
 ---
 
 # /plan-new

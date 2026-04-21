@@ -143,11 +143,15 @@ All scripts in `environment/` must be safe to rerun with the same outcome. Requi
 
 This repo uses these skills and commands:
 
-- **`/session-start`** — reviews git state, open issues, active plans in `docs/plans/`, initializes `docs/session-scratch.md`
-- **`/session-end`** — processes scratch into GitHub issues with labels, commits, pushes, cleans up
-- **`/audit`** — scan the repo for drift (empty stubs, broken links, legacy references)
-- **`/sync-check`** — verify on-disk reality matches what the schemas describe
-- **`/plan-new <name> "<title>"`** — scaffold a new plan file in `docs/plans/`
+| Invocation | What it does |
+|---|---|
+| `/session-start` | Review git state, open issues, active plans in `docs/plans/`; initialize `docs/session-scratch.md` |
+| `/session-end` | Process scratch into GitHub issues; stage, commit, push |
+| `/audit` | Scan the repo for drift (empty stubs, broken links, legacy references, cruft) |
+| `/sync-check` | Verify on-disk reality on this workstation matches the schemas |
+| `/plan-new <name> "<title>"` | Scaffold a new plan file in `docs/plans/` |
+
+Skills live in `.claude/skills/`; commands live in `.claude/commands/`.
 
 ### Required GitHub labels
 
@@ -156,6 +160,20 @@ Session-end assumes these labels exist on `andrewhml/life-atlas`. Create with `g
 - Type: `ready`, `idea`, `bug`, `feature`, `chore`, `docs`
 - Priority: `priority/high`, `priority/medium`, `priority/low`
 - Area: `area/device-schemas`, `area/folder-schemas`, `area/environment`, `area/bookmarks`, `area/docs`, `area/meta`, `area/drift`
+
+---
+
+## Permissions & constraints
+
+Claude Code's permissions for this repo are configured in `.claude/settings.json`. The allowlist is intentionally narrow:
+
+- **Write access:** only `.claude/*` and `docs/*`
+- **Bash allowed:** read-only git (`status`, `log`, `branch`, `diff`, `stash`, `show`), plus `gh issue`/`gh label` for session workflow
+- **No write access** to any other repo path without explicit user approval
+- **No access** to files inside `~/Atlas/` (personal data lives there; handled by the cloud drive app)
+- **No access** to `~/Atlas/config/keys/` under any circumstances
+
+If a task requires broader permissions, ask the user first. Don't silently expand the allowlist.
 
 ---
 

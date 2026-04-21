@@ -1,10 +1,18 @@
 ---
-description: Verify the on-disk filesystem on this workstation matches what life-atlas schemas describe
+description: Verify the current workstation's filesystem matches life-atlas schemas. Use when setting up a new device, after reconfiguring a sync tool, or when the user asks "is everything in the right place." Checks cloud drive subfolders, local workspace and pictures paths, NAS mount, and flags legacy paths.
 ---
 
 # /sync-check
 
 Verify the on-disk reality matches what life-atlas documents.
+
+## Usage
+
+```
+/sync-check
+```
+
+No arguments. Runs against the current workstation.
 
 Life-atlas describes *target* structure. Actual filesystem state can drift. This command checks, without touching user data.
 
@@ -20,7 +28,7 @@ Life-atlas describes *target* structure. Actual filesystem state can drift. This
 
 5. **Legacy paths** — does `~/System/`, `~/Kit/`, or any `~/*-Example/` directory exist? These are legacy / leftover and flagged for cleanup.
 
-6. **Repo's own expected paths** — is `docs/` present (session scratch location)? Is `.claude/skills/` populated?
+6. **Repo's own expected paths** — `docs/` exists (session-scratch location); `.claude/skills/` contains at least one `SKILL.md`; `.claude/commands/` contains at least one command file.
 
 ## How to run
 
