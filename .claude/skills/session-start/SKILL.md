@@ -1,5 +1,5 @@
 ---
-description: Start a new session — load context, check project status, orient
+description: Load project context: check git state, open issues, active plans; initialize session scratch
 ---
 
 # Session Start

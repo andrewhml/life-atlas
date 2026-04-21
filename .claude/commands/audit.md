@@ -1,10 +1,18 @@
 ---
-description: Scan the life-atlas repo for drift, empty stubs, broken cross-references, and legacy references
+description: Find repo drift — empty stubs, broken links, legacy term references, OS cruft
 ---
 
 # /audit
 
 Scan the life-atlas repo for drift.
+
+## Usage
+
+```
+/audit
+```
+
+No arguments. Scans the whole repo.
 
 ## What to check
 

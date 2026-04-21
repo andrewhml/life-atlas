@@ -1,5 +1,5 @@
 ---
-description: End session — process observations into issues, commit, push
+description: Process session observations into GitHub issues, stage and commit changes, push branch
 ---
 
 # Session End
@@ -67,11 +67,14 @@ EOF
 gh issue create --title "[title]" --label "idea,[area]" --body "[1-3 sentence description]"
 ```
 
-## 4. Update MEMORY.md
+## 4. Capture learnings (if any)
 
-If something was learned during the session that future sessions need (a gotcha, a pattern, a quirk):
-- Append to MEMORY.md Session Learnings section
-- Keep it to one-liners. If it's a pattern, add it to CLAUDE.md or a skill instead.
+If something was learned during the session that future sessions need — a gotcha, a pattern, a quirk — route it:
+- Pattern or durable rule → add to `CLAUDE.md` conventions or a skill
+- One-off gotcha that future Claude sessions should recall → flag to the user; it will be saved to Claude's memory outside the repo
+- Nothing to capture → skip this step
+
+This repo has no `MEMORY.md`. Do not create one; cross-session state lives in Claude's memory system.
 
 ## 5. Handle uncommitted work
 
