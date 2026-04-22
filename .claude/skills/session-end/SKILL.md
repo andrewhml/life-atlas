@@ -67,14 +67,61 @@ EOF
 gh issue create --title "[title]" --label "idea,[area]" --body "[1-3 sentence description]"
 ```
 
-## 4. Capture learnings (if any)
+## 4. Memory review
 
-If something was learned during the session that future sessions need — a gotcha, a pattern, a quirk — route it:
-- Pattern or durable rule → add to `CLAUDE.md` conventions or a skill
-- One-off gotcha that future Claude sessions should recall → flag to the user; it will be saved to Claude's memory outside the repo
-- Nothing to capture → skip this step
+The auto-memory system at `~/.claude/projects/-Users-andrewlee-workspace-personal-life-atlas/memory/` only gains entries if Claude notices and writes in-the-moment. This step is the end-of-session catch-up pass.
 
-This repo has no `MEMORY.md`. Do not create one; cross-session state lives in Claude's memory system.
+Note: `MEMORY.md` for this project lives in the memory dir above, NOT in the repo. Never create a `MEMORY.md` inside this repo.
+
+### 4a. Scan the session
+
+Review the conversation for candidates by type:
+- **user** — role, tools, preferences, domain knowledge the user revealed
+- **feedback** — corrections the user made AND non-obvious choices they validated without pushback (always include *why*)
+- **project** — decisions, motivations, deadlines, stakeholders (convert relative dates to absolute)
+- **reference** — external systems, dashboards, channels the user pointed to
+
+Exclude anything on the "What NOT to save" list: code patterns, file paths, git history, architecture, ephemeral task state, anything already documented in `CLAUDE.md`.
+
+Persistent routing rules (unchanged):
+- Durable pattern or rule → propose an edit to `CLAUDE.md` or a skill, not memory
+- Cross-session gotcha → memory
+
+### 4b. Check against existing memory
+
+Read `MEMORY.md` in the memory dir. For each candidate, check whether an existing entry already covers it. If so, propose an **update** to that file rather than a new file.
+
+### 4c. Propose to user
+
+```
+Memory candidates:
+
+New:
+  1. [user]     short title — content
+  2. [feedback] short title — content (Why: …; How to apply: …)
+
+Update:
+  3. existing-file.md — change: …
+```
+
+User can approve all, cherry-pick, or reject. If nothing qualifies, say so and move on — don't invent entries.
+
+### 4d. Write approved entries
+
+For new entries:
+- Create the `.md` file with frontmatter (`name`, `description`, `type`)
+- For `feedback` and `project` types, structure body as: rule/fact, then **Why:** and **How to apply:** lines
+- Append a one-line pointer to `MEMORY.md`: `- [Title](file.md) — one-line hook`
+
+For updates: edit the existing file; refresh the `MEMORY.md` pointer only if its one-liner is now wrong.
+
+### 4e. Light staleness audit
+
+Read `MEMORY.md`. For each entry, flag:
+- Named repo file paths that no longer exist
+- Project memories dated more than 6 months ago (likely stale)
+
+Surface flagged entries to the user: remove, update, or leave? Don't do deep verification here — that belongs in a separate periodic audit.
 
 ## 5. Handle uncommitted work
 

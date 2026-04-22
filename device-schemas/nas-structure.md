@@ -3,6 +3,7 @@
 Folder structure and role of the NAS in the `life-atlas` system.
 
 See the main [README](../README.md) for Atlas structure and sync topology.
+See [`nas-services.md`](./nas-services.md) for Docker services, version pins, and known issues.
 
 ---
 
