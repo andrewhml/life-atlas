@@ -273,3 +273,9 @@ Phase 7 (iCloud non-photo cleanup)
 - 2026-04-22 — Phase 1 started: iPhone + iPad Immich backup setup
 - 2026-04-22 — Phase 1 complete: iPhone backup active, iPad deferred, public URL hardened, Immich iGPU enabled
 - 2026-04-22 — Phase 2 scale measured: 24,767 total assets in duplicate groups. Phase 2 tooling drafted: `tools/immich-dedup/classify.py` on branch `feat/immich-dedup`. Framed as a community-submittable improvement to Immich dedup workflow, not just a personal utility.
+- 2026-04-22 — `tools/immich-dedup/` tool set completed: `classify.py` (markdown report, 7 buckets + confidence tiers), `gallery.py` (HTML visual review with embedded thumbnails), `apply.py` (bucket-filtered execution via `/api/duplicates/resolve` with dry-run default + JSONL log + retry-on-timeout). 38 unit tests passing.
+- 2026-04-22 — Classifier refinement iterations: v0 0% classified → v1 95.9% high-confidence (added `rendition_set` + `dominant_keeper` buckets) → v2 97.1% high-confidence (expanded iOS rendition suffix regex to `_[aco]`). Residual `edge_case` shrank from 17,646 → 74 groups.
+- 2026-04-22 — Postgres backup taken on UGREEN: `/volume1/backups/immich-predoc-dedup/pg-20260422-231214.sql.gz` (550 MB). Verified: 62 CREATE TABLEs, valid dump header.
+- 2026-04-22 → 2026-04-23 — Phase 2 execution: canary (heic_jpeg_pair, 8 groups) → rendition_set (~23k groups, one socket-timeout-driven crash on batch 61, fixed via broader exception catch + retry + 300s timeout → resumed) → dominant_keeper → burst → screenshots → edge_case (74 manual in UI). All buckets processed to Immich trash.
+- 2026-04-23 — Phase 2 execution complete: 24,522 duplicate groups resolved (per `apply.log.jsonl`) out of 24,705 starting groups. The ~183 delta is groups that stopped being duplicates mid-process (siblings resolved) plus `edge_case` groups opted out of. Soak period begins.
+- 2026-04-23 — Phase 2 soak period begins. Empty trash at day 7+ to close Phase 2.
