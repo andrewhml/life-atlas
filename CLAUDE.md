@@ -30,6 +30,7 @@ The pattern is implementation-agnostic. This user's concrete choices:
 | Secondary workstation | Personal PC (Windows 11 Pro, NVIDIA RTX 5080) |
 | Company workstation | MacBook Pro (work, macOS) |
 | Network-attached storage | UGREEN NAS named `Peddocks2` at `/Volumes/personal_folder/Atlas` |
+| External photo SSDs | SanDisk 2TB × 2: `Carbonizer` (primary, usually mounted) + `Noisy Cricket` (1:1 CCC clone) |
 | Phone | iPhone 16 Pro (Google Drive iOS app) |
 | Tablet | iPad 2024 (Google Drive iOS app) |
 | Consulting cloud | Separate Syntheus Google Drive |

@@ -1,6 +1,6 @@
 # Plan 0003 — zsh prompt setup (Powerlevel10k + Atlas sync)
 
-**Status:** In Progress
+**Status:** Complete
 **Issue:** — (create on session-end)
 **Created:** 2026-04-22
 
@@ -186,69 +186,72 @@ Choose any emoji pair — success≠error is the key invariant so failed command
 
 Reload: `exec zsh`.
 
-### Phase 4 — Move to Atlas + symlink (do NOT defer)
+### Phase 4 — Snapshot to Atlas (copies, not symlinks)
 
-Three files go to Atlas: `~/.zshrc`, `~/.p10k.zsh`, and `~/.config/ghostty/config`. Different target subfolders because they're conceptually different config surfaces.
+**Design pivot (2026-04-22):** originally this phase used symlinks. Switched to copies + a sync script instead. Rationale: cloud-sync daemons should not sit in the critical path of shell startup. Live dotfiles stay under `$HOME`; Atlas holds snapshots refreshed via an explicit command. Drift risk is the known tradeoff, mitigated by a `--check` mode that can be wired into session-start later.
+
+Three live files, three Atlas snapshots:
+
+| Live path | Atlas snapshot |
+|---|---|
+| `~/.zshrc` | `~/Atlas/config/shell/zshrc` |
+| `~/.p10k.zsh` | `~/Atlas/config/shell/p10k.zsh` |
+| `~/.config/ghostty/config` | `~/Atlas/config/terminal/ghostty-config` |
+
+**Initial snapshot:**
 
 ```sh
-# Shell config
-mkdir -p ~/Atlas/config/shell
-mv ~/.zshrc ~/Atlas/config/shell/zshrc
-mv ~/.p10k.zsh ~/Atlas/config/shell/p10k.zsh
-ln -s ~/Atlas/config/shell/zshrc ~/.zshrc
-ln -s ~/Atlas/config/shell/p10k.zsh ~/.p10k.zsh
-
-# Terminal (Ghostty) config
-mkdir -p ~/Atlas/config/terminal
-mv ~/.config/ghostty/config ~/Atlas/config/terminal/ghostty-config
-ln -s ~/Atlas/config/terminal/ghostty-config ~/.config/ghostty/config
+mkdir -p ~/Atlas/config/shell ~/Atlas/config/terminal
+cp ~/.zshrc ~/Atlas/config/shell/zshrc
+cp ~/.p10k.zsh ~/Atlas/config/shell/p10k.zsh
+cp ~/.config/ghostty/config ~/Atlas/config/terminal/ghostty-config
 ```
 
-Verify:
+**Ongoing sync** — see `environment/sync-shell-config.sh`:
+
+- Default: copy forward ($HOME → Atlas), byte-compare to skip unchanged files.
+- `--check`: report drift only, exit 1 if any file differs. Non-writing.
+
+Run after any edit to a tracked dotfile.
+
+**Verify:**
+
 ```sh
-ls -la ~/.zshrc ~/.p10k.zsh ~/.config/ghostty/config
+./environment/sync-shell-config.sh --check
 ```
-All three must show `-> /Users/andrewlee/Atlas/config/...`.
 
-Open a new Ghostty window. Confirm prompt and theme look identical to pre-symlink state. If yes, sync works.
+Should report all three files `up to date`.
 
-### Phase 5 — Update folder schema
+### Phase 5 — Folder schema
 
-Two new subfolders under `~/Atlas/config/` need to be added to `folder-schemas/config.md`:
+`folder-schemas/config.md` did not previously exist — created in this phase. Covers all `~/Atlas/config/` subfolders (`ai`, `apps`, `desktop-images`, `keys`, `settings`, `shortcuts`, `templates`, `themes`) plus the two new ones from this plan:
 
-- `shell/` — "Shell config (zshrc, p10k.zsh) symlinked into `$HOME` on each workstation"
-- `terminal/` — "Terminal emulator config (e.g., Ghostty) symlinked into `~/.config/<app>/` on each workstation"
+- `shell/` — shell dotfile snapshots, synced via `environment/sync-shell-config.sh`
+- `terminal/` — terminal emulator config snapshots, same sync script
 
-Slot alongside existing entries: `ai`, `apps`, `desktop-images`, `keys`, `settings`, `shortcuts`, `templates`, `themes`.
+Schema also documents the one-way sync model and the anti-pattern of symlinking live dotfiles into a cloud-synced path.
 
-### Phase 6 — Document setup for new machines
+### Phase 6 — Document new-machine setup
 
-Add `environment/shell-setup.md` (or section in existing env docs) covering the minimum steps to make a new workstation match this one:
+`environment/shell-setup.md` covers the Atlas → `$HOME` restore direction: brew installs (p10k, Meslo Nerd Font), `cp` from Atlas snapshots to the live dotfile paths, `exec zsh`, verification via prompt visual + Nerd Font glyph test. Also documents the ongoing sync workflow pointing at `sync-shell-config.sh`.
 
-1. `brew install powerlevel10k`
-2. `brew install --cask font-meslo-lg-nerd-font`
-3. `ln -s ~/Atlas/config/shell/zshrc ~/.zshrc`
-4. `ln -s ~/Atlas/config/shell/p10k.zsh ~/.p10k.zsh`
-5. `mkdir -p ~/.config/ghostty && ln -s ~/Atlas/config/terminal/ghostty-config ~/.config/ghostty/config`
-6. Install Ghostty (from ghostty.org — not brew-cask-available on all setups; worth checking)
-7. `exec zsh`
-
-Phases 5 and 6 can be deferred to the next session without blocking the prompt working.
+The restore direction is manual by design — a deliberate, first-time-only copy onto a new machine. The sync script is strictly one-way ($HOME → Atlas) so it can never clobber a live dotfile.
 
 ---
 
 ## Risks / open questions
 
 - **Font install fails / Ghostty can't find it** — unlikely but check with `fc-list | grep -i meslo` after the cask install. Fallback: download from the p10k repo manually.
-- **Existing `~/.zshrc` has user content not just the p10k source line** — the `mv` in Phase 4 preserves everything. Verify with `cat ~/Atlas/config/shell/zshrc` before the symlink if unsure.
+- **Drift between live dotfile and Atlas snapshot** — copy approach instead of symlink means edits won't auto-propagate. Mitigation: `environment/sync-shell-config.sh --check` reports drift and can be wired into a session-start or shell-exit hook later.
 - **Secondary workstation is Windows** — symlinks work on WSL but native PowerShell needs a different strategy. Out of scope; p10k on WSL reads the same Atlas-synced config if WSL mounts `~/Atlas/` (Google Drive for Desktop on Windows).
 - **Transient prompt + multi-line commands** — occasionally collapses a long edited command awkwardly. If it bothers, set `POWERLEVEL9K_TRANSIENT_PROMPT=same-dir` (collapse only when dir is same) or `off`.
 
 ## Exit criteria
 
-- [ ] `exec zsh` shows two-line p10k prompt with rainbow segments
-- [ ] `andrewlee@AM2` (or equivalent user@host segment) is visibly colored and distinct from command text
-- [ ] Path truncates as `~/w/p/life-atlas` style
-- [ ] Emoji prompt char appears; changes between success and error states
-- [ ] `ls -la ~/.zshrc ~/.p10k.zsh ~/.config/ghostty/config` shows all three as symlinks into `~/Atlas/config/`
-- [ ] Restart Ghostty, open new shell, prompt + theme still work (sync persisted)
+- [x] `exec zsh` shows two-line p10k prompt with rainbow segments
+- [x] `andrewlee@AM2` (or equivalent user@host segment) is visibly colored and distinct from command text
+- [x] Path truncates as `~/w/p/life-atlas` style
+- [~] Emoji prompt char — **dropped** 2026-04-22; user chose to keep the default chars
+- [x] `~/Atlas/config/shell/{zshrc,p10k.zsh}` and `~/Atlas/config/terminal/ghostty-config` snapshots exist
+- [x] `environment/sync-shell-config.sh --check` reports all three files up to date
+- [x] `folder-schemas/config.md` and `environment/shell-setup.md` document the model

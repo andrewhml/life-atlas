@@ -44,6 +44,7 @@ This repo is currently developed against one concrete setup. Adapt as needed:
 | Secondary workstation | Windows 11 Pro PC |
 | Company workstation | MacBook Pro (macOS, work) |
 | NAS | UGREEN (`Peddocks2` at `/Volumes/personal_folder/Atlas`) |
+| External photo SSDs | SanDisk 2TB × 2 (`Carbonizer` + 1:1 clone `Noisy Cricket`) |
 | Phone | iPhone 16 Pro |
 | Tablet | iPad 2024 |
 | Consulting cloud | Separate Syntheus Google Drive |

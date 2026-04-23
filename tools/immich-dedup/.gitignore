@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+report.md
+groups.json
+gallery.html
+apply.log.jsonl

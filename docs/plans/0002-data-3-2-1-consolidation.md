@@ -46,6 +46,8 @@ Get the personal-data ecosystem into a 3-2-1-aligned state (3 copies, 2 media ty
 | iCloud | **200 / 200 GB (FULL)** | — | Photos 150.2 GB, Backup 38.3 GB, Messages 7.3 GB, Docs 4.1 GB, Mail 26 MB |
 | Google Drive Personal | 26 / 100 GB | — | Atlas canonical |
 | Google Drive Syntheus | 23 / 60 GB | — | Client work, hard boundary |
+| SanDisk `Carbonizer` (2 TB exFAT SSD) | 1.3 / 1.8 TB | — | Mobile primary photo + projects mirror; Mac ↔ SSD via CCC |
+| SanDisk `Noisy Cricket` (2 TB exFAT SSD) | ~same (1:1 clone) | — | CCC clone of Carbonizer; currently onsite — offsite path in Plan 0005 |
 
 ### Irreplaceable vs replaceable data
 
@@ -94,15 +96,23 @@ Get the personal-data ecosystem into a 3-2-1-aligned state (3 copies, 2 media ty
 
 **Goal:** Immich library is clean, deduplicated, and the declared source of truth before emptying iCloud.
 
-**Steps:**
-1. Run Immich's built-in duplicate detection (`immich-duplicate-finder` job)
-2. Review duplicate groups; remove 100–200 GB of dupes/trash estimated
-3. Verify no orphaned thumbnails or broken external library references
-4. Tag/album strategy: establish year folders (`2015/`, `2016/`, ...) for external library structure if used
-5. Back up the Immich Postgres + config **before any destructive action in Phase 3** (UGREEN → Synology once Phase 4 is ready, or manual export in the interim)
-6. Declare: Immich = photo master. iCloud = downstream curated subset only.
+**Scale as of 2026-04-22:** Immich reports 24,767 total assets across duplicate groups. Manual review is off the table; triage requires tooling.
 
-**Exit criteria:** Immich dedup pass complete. Postgres + config backup taken. Library size documented.
+**Tool:** `tools/immich-dedup/classify.py` (added 2026-04-22 on branch `feat/immich-dedup`). Read-only classifier that buckets the `/duplicates` output by handling type (`bit_identical`, `heic_jpeg_pair`, `live_photo_pair`, `burst`, `screenshots`, `edge_case`). Writes nothing. Designed to be extracted into its own repo / submitted to the Immich community if v0 earns its keep.
+
+**Steps:**
+1. **Postgres + config backup FIRST** — before any destructive action, on UGREEN: `docker exec immich_postgres pg_dumpall -U postgres | gzip > /volume1/backups/immich-predoc-dedup/pg-$(date +%Y%m%d-%H%M%S).sql.gz`. Only rollback path if the dedup script misbehaves against 24k+ assets.
+2. **Run `classify.py`** to get the bucket breakdown. Output is a markdown report.
+3. **Decide handling per bucket:**
+   - `bit_identical` / `heic_jpeg_pair` / `screenshots`: bulk-accept Immich's `suggestedKeepAssetIds` via `POST /api/duplicates/resolve` (or Immich's UI "Duplicate all" with a spot-check).
+   - `burst`: bulk-accept with 5% human sample-check.
+   - `live_photo_pair`: consider stacking via Immich's stack feature instead of deleting.
+   - `edge_case`: human review. If this bucket is large, build a lightweight review UI (10 groups at a time) as a second phase of the tool.
+4. **Execute to trash** (soft delete; 30-day recovery). Log every action.
+5. **7-day soak in trash** — chance to spot regrets before hard delete.
+6. **Empty trash, verify, declare Immich = master-of-record.**
+
+**Exit criteria:** Immich dedup pass complete. Postgres + config backup taken. Library size documented in plan status log.
 
 ### Phase 3 — Empty iCloud Photos
 
@@ -262,3 +272,10 @@ Phase 7 (iCloud non-photo cleanup)
 - 2026-04-22 — Plan drafted from session inventory and answered blocking questions
 - 2026-04-22 — Phase 1 started: iPhone + iPad Immich backup setup
 - 2026-04-22 — Phase 1 complete: iPhone backup active, iPad deferred, public URL hardened, Immich iGPU enabled
+- 2026-04-22 — Phase 2 scale measured: 24,767 total assets in duplicate groups. Phase 2 tooling drafted: `tools/immich-dedup/classify.py` on branch `feat/immich-dedup`. Framed as a community-submittable improvement to Immich dedup workflow, not just a personal utility.
+- 2026-04-22 — `tools/immich-dedup/` tool set completed: `classify.py` (markdown report, 7 buckets + confidence tiers), `gallery.py` (HTML visual review with embedded thumbnails), `apply.py` (bucket-filtered execution via `/api/duplicates/resolve` with dry-run default + JSONL log + retry-on-timeout). 38 unit tests passing.
+- 2026-04-22 — Classifier refinement iterations: v0 0% classified → v1 95.9% high-confidence (added `rendition_set` + `dominant_keeper` buckets) → v2 97.1% high-confidence (expanded iOS rendition suffix regex to `_[aco]`). Residual `edge_case` shrank from 17,646 → 74 groups.
+- 2026-04-22 — Postgres backup taken on UGREEN: `/volume1/backups/immich-predoc-dedup/pg-20260422-231214.sql.gz` (550 MB). Verified: 62 CREATE TABLEs, valid dump header.
+- 2026-04-22 → 2026-04-23 — Phase 2 execution: canary (heic_jpeg_pair, 8 groups) → rendition_set (~23k groups, one socket-timeout-driven crash on batch 61, fixed via broader exception catch + retry + 300s timeout → resumed) → dominant_keeper → burst → screenshots → edge_case (74 manual in UI). All buckets processed to Immich trash.
+- 2026-04-23 — Phase 2 execution complete: 24,522 duplicate groups resolved (per `apply.log.jsonl`) out of 24,705 starting groups. The ~183 delta is groups that stopped being duplicates mid-process (siblings resolved) plus `edge_case` groups opted out of. Soak period begins.
+- 2026-04-23 — Phase 2 soak period begins. Empty trash at day 7+ to close Phase 2.
