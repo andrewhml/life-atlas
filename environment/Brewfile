@@ -1,0 +1,57 @@
+# Brewfile — MacBook Pro (Personal)
+#
+# Run from this directory:  brew bundle
+# Check drift without writes:  brew bundle check --verbose
+# Update from current state:  brew bundle dump --force --describe
+#
+# Idempotent: re-running is safe. Entries already installed are skipped.
+# This is a MINIMAL starter Brewfile — reconcile with `brew bundle dump`
+# from the old MacBook when available.
+
+# ── CLI: shell + prompt ───────────────────────────────────────────
+brew "powerlevel10k"          # zsh theme, already installed
+brew "starship", restart_service: false  # alternative prompt; keep dormant unless wired in
+brew "bash"                   # newer bash than macOS default
+
+# ── CLI: dev essentials ───────────────────────────────────────────
+brew "git"                    # newer git than Xcode CLT
+brew "gh"                     # GitHub CLI (issues, PRs, label setup per CLAUDE.md)
+brew "fnm"                    # Fast Node Manager
+brew "mas"                    # Mac App Store CLI
+
+# ── CLI: modern unix replacements ─────────────────────────────────
+brew "ripgrep"                # rg — fast grep
+brew "fd"                     # find replacement
+brew "bat"                    # cat with syntax highlighting
+brew "eza"                    # ls replacement
+brew "fzf"                    # fuzzy finder
+brew "jq"                     # JSON processor
+brew "yq"                     # YAML processor
+brew "tree"                   # directory tree view
+brew "wget"
+brew "htop"
+
+# ── Fonts ─────────────────────────────────────────────────────────
+cask "font-meslo-lg-nerd-font"  # already installed; required for p10k icons
+
+# ── Apps: already installed (claim for declarative management) ────
+cask "adobe-creative-cloud"   # Lr + Ai installed via CC manually
+cask "figma"
+cask "google-drive"
+cask "whatsapp"
+
+# ── Apps: editors / terminal ──────────────────────────────────────
+cask "visual-studio-code"     # already installed; declare for reinstall
+cask "ghostty"                # already installed; cask available now
+
+# ── Apps: productivity / browsers / media ─────────────────────────
+cask "brave-browser"          # already installed
+cask "raycast"                # already installed
+cask "spotify"                # already installed
+cask "spark-app"              # Spark Desktop (cask was renamed from `spark`)
+
+# ── NOT brew-managed (intentional) ────────────────────────────────
+# - Claude.app   — installed via Anthropic native installer
+# - Codex.app    — installed via OpenAI native installer
+# - Lightroom CC, Illustrator 2026 — installed via Adobe Creative Cloud (sub-apps)
+# - macOS bundled apps (Safari, iMovie, GarageBand, iWork suite)
