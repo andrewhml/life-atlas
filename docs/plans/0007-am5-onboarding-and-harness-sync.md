@@ -11,7 +11,7 @@
 
 Bring the new MacBook Pro (AM5) up to parity with AM2 across two independent-but-coupled outcomes:
 
-- **Milestone A — Claude harness migration.** `~/.claude/` content (CLAUDE.md, statusline.sh, mcp.json, commands/, teams/, skills/, plugins manifest, settings.json) shared via a dedicated private git repo (`andrewhml/claude-harness`). Closes issue #43.
+- **Milestone A — Claude harness migration.** `~/.claude/` content (CLAUDE.md, statusline.sh, mcp.json, commands/, skills/, plugins manifest, settings.json) shared via a dedicated private git repo (`andrewhml/claude-harness`). Closes issue #43.
 - **Milestone B — AM5 environment parity.** Brewfile reconciled and applied; native-app inventory captured and walked; gh authenticated. Closes issue #44.
 
 The two milestones share onboarding context but can complete independently. If Milestone B is delayed (e.g., an app needs vendor attention), Milestone A can close on its own. Both milestones share the same Phase 5 onboarding gate but have distinct exit-criteria groups (see Exit criteria).
@@ -71,7 +71,6 @@ Establish a sustainable cross-device model for the harness: AM2 is the current s
 ├── mcp.json                        # MCP server registry (secret-audited)
 ├── mcp-wrappers/                   # per-server launch wrappers that pull secrets from Keychain
 ├── commands/                       # slash commands
-├── teams/                          # team configs
 ├── skills/                         # user skills (moved from Atlas in Phase 2c)
 ├── plugins/
 │   ├── installed_plugins.lock.json # SOLE portable source of truth: per-plugin source/version/auth/install-cmd (see Plugin reinstall manifest)
@@ -97,8 +96,6 @@ Establish a sustainable cross-device model for the harness: AM2 is the current s
 !mcp-wrappers/**
 !commands/
 !commands/**
-!teams/
-!teams/**
 !skills/
 !skills/**
 !plugins/
@@ -121,6 +118,11 @@ plugins/marketplaces/
 # and install timestamps. NOT portable. The portable equivalent is the sanitized
 # installed_plugins.lock.json above.
 plugins/installed_plugins.json
+
+# teams/ holds per-project Claude Code "teams" feature conversation transcripts
+# (e.g. teams/<project>/inboxes/<role>.json). Runtime state, same category as
+# sessions/ and projects/. Reclassified during plan-0007 Phase 2a execution.
+teams/
 ```
 
 Rationale for explicit exclusions (despite being part of `~/.claude/`):
@@ -128,7 +130,7 @@ Rationale for explicit exclusions (despite being part of `~/.claude/`):
 | Path | Reason excluded |
 |---|---|
 | `cache/`, `debug/`, `downloads/`, `file-history/`, `ide/`, `paste-cache/`, `session-env/`, `shell-snapshots/`, `statsig/`, `telemetry/`, `tasks/`, `todos/`, `backups/`, `.last-cleanup` | Runtime state; per-machine; write-hot |
-| `history.jsonl`, `sessions/`, `projects/` | Per-machine session state; conflict-prone |
+| `history.jsonl`, `sessions/`, `projects/`, `teams/` | Per-machine session/conversation state; conflict-prone. (`teams/` reclassified during Phase 2a execution — turned out to be per-project conversation transcripts, not authored config.) |
 | `mcp-needs-auth-cache.json`, `stats-cache.json` | Per-machine auth/stats caches |
 | `settings.local.json` | Anthropic's documented per-machine override seam |
 | `plugins/cache/`, `plugins/install-counts-cache.json` | Generated machine state |
@@ -352,7 +354,7 @@ SEED_FILES=(
   ~/.claude/plugins/known_marketplaces.json
   ~/.claude/plugins/blocklist.json
 )
-SEED_DIRS=(~/.claude/commands ~/.claude/teams ~/.claude/skills)
+SEED_DIRS=(~/.claude/commands ~/.claude/skills)
 
 rg -i 'token|secret|api[_-]?key|password|bearer|authorization' "${SEED_FILES[@]}" 2>/dev/null
 rg -i 'token|secret|api[_-]?key|password|bearer|authorization' "${SEED_DIRS[@]}" 2>/dev/null
@@ -375,7 +377,7 @@ fi
 - **2a-pre (this section above):** rg keyword pass + manual review (below) + issue-#41 remediation. Runs on `~/.claude/` directly before any git initialization. Hard stop on findings.
 - **2a-post (Phase 2f below, between git init and initial commit):** gitleaks scanner. Documented in Phase 2f.
 
-**Manual review pass (part of 2a-pre).** Tooling doesn't catch everything. Open `mcp.json` and every file under `commands/`, `teams/`, `skills/` (and the `plugins/*.json` files) and read with secret-spotting eyes. Look for: opaque ID-shaped strings, URLs with embedded creds (`https://user:pass@host`), JSON fields with provider-specific names (`integration_token`, `client_secret`, `webhook_url` with embedded tokens, etc.).
+**Manual review pass (part of 2a-pre).** Tooling doesn't catch everything. Open `mcp.json` and every file under `commands/`, `skills/` (and the `plugins/*.json` files) and read with secret-spotting eyes. Look for: opaque ID-shaped strings, URLs with embedded creds (`https://user:pass@host`), JSON fields with provider-specific names (`integration_token`, `client_secret`, `webhook_url` with embedded tokens, etc.).
 
 The three-layer gate is **rg keyword pass + manual review (both 2a-pre) + gitleaks (2a-post)**, all clean, before commit. If a secret reaches the initial commit anyway, recovery requires (a) immediate rotation of the exposed credential, (b) `git filter-repo` or BFG to scrub history, (c) force-push. Easier to gate hard up front.
 
