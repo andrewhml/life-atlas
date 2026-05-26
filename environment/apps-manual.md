@@ -4,7 +4,9 @@ Apps and parity-required items on AM2 that the Brewfile does NOT install. Walk t
 
 **Inventory captured 2026-05-25 (host=AM2, M2 Pro) during plan 0007 Phase 4** from 8 enumeration surfaces: `/Applications`, `mas list` (already in Brewfile), Login Items, LaunchAgents, fonts, browser extensions, preference panes / system extensions, CLI tools outside brew.
 
-Anything in [`environment/Brewfile`](Brewfile) is **not** repeated here. That includes: all 14 App Store apps (via `mas`), `font-meslo-lg-nerd-font`, `ghostty`, `display_switch` + `m1ddc`, all CLI formulas, and the 4 npm globals (`@google/gemini-cli`, `@openai/codex`, `planpong`, `vercel`).
+Anything in [`environment/Brewfile`](Brewfile) is **not** repeated here. That includes: `font-meslo-lg-nerd-font`, `ghostty`, `display_switch` + `m1ddc`, all CLI formulas, and the 4 npm globals (`@google/gemini-cli`, `@openai/codex`, `planpong`, `vercel`).
+
+Mac App Store apps live in the "Mac App Store apps" section below — they used to live in the Brewfile under `mas`, but `mas install` is broken on macOS 26.5 (requires sudo + several ADAM IDs return "No apps found"). Install MAS apps via the App Store GUI.
 
 ---
 
@@ -24,11 +26,6 @@ Anything in [`environment/Brewfile`](Brewfile) is **not** repeated here. That in
 - **Install:** https://openai.com/chatgpt/download
 - **Purpose:** OpenAI ChatGPT desktop client
 - **Setup notes:** Sign in.
-
-### Copilot.app
-- **Install:** Microsoft Store / https://copilot.microsoft.com
-- **Purpose:** Microsoft Copilot desktop
-- **Setup notes:** Sign in with Microsoft account.
 
 ---
 
@@ -85,10 +82,6 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 - **Install:** https://sparkmailapp.com/
 - **Setup notes:** Sign in to recover account list.
 
-### Linear
-- **Install:** https://linear.app/download
-- **Setup notes:** Sign in to workspace.
-
 ### Notion
 - **Install:** https://www.notion.so/desktop
 - **Setup notes:** Sign in.
@@ -97,10 +90,6 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 - **Install:** https://zoom.us/download
 - **Setup notes:** Sign in. (`us.zoom.updater.gui.501.*` LaunchAgents come with the app.)
 
-### GoToMeeting
-- **Install:** https://www.gotomeeting.com (only install if a specific meeting requires it)
-- **Setup notes:** Optional — used rarely.
-
 ---
 
 ## Productivity
@@ -108,14 +97,6 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 ### Raycast
 - **Install:** https://www.raycast.com/
 - **Setup notes:** Sign in for cloud sync of snippets, scripts, extensions. (Login Item.)
-
-### Alfred 5
-- **Install:** https://www.alfredapp.com/
-- **Setup notes:** If you have a Powerpack license, sign in to enable advanced features. Configure preferences sync to a cloud folder if cross-machine syncing is desired.
-
-### Sketch
-- **Install:** https://www.sketch.com/download/mac
-- **Setup notes:** Sign in. Workspace projects sync via Sketch Cloud.
 
 ### Figma
 - **Install:** https://www.figma.com/downloads/
@@ -128,10 +109,6 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 ### OmmWriter
 - **Install:** App Store or https://ommwriter.com
 - **Setup notes:** Distraction-free writing.
-
-### Pencil (HTML5 mockups)
-- **Install:** https://pencil.evolus.vn/
-- **Setup notes:** Standalone.
 
 ### Screen Studio
 - **Install:** https://screen.studio/
@@ -164,10 +141,6 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 ### VLC
 - **Install:** https://www.videolan.org/vlc/
 - **Setup notes:** Standalone media player; covers what QuickTime can't.
-
-### Calibre
-- **Install:** https://calibre-ebook.com/download_osx
-- **Setup notes:** eBook management. Library path: confirm post-install (likely `~/Documents/Calibre Library/` or similar).
 
 ---
 
@@ -217,30 +190,8 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 - **Purpose:** Logitech device configuration (mouse, keyboard, etc.)
 - **Setup notes:** Installs `com.logi.optionsplus.plist` + `com.logitech.LogiRightSight.Agent.plist` LaunchAgents.
 
-### Logitech G HUB (gaming peripherals)
-- **Install:** https://www.logitechg.com/en-us/innovation/g-hub.html
-- **Purpose:** Manages G-series peripherals; provides the `com.logi.ghub.hidfilter` driver extension.
-- **Setup notes:** Approve the driver extension in System Settings after install. Currently shows "activated waiting for user" on AM2 — same gate exists on AM5.
-
 ### VIA (mechanical keyboard programmer)
-- **Install:** https://usevia.app/ (web app) or https://github.com/the-via/releases (native)
-- **Purpose:** Re-flash keymap layers on QMK/VIA-compatible keyboards
-- **Setup notes:** Standalone.
-
-### BeardedSpice
-- **Install:** https://github.com/beardedspice/beardedspice
-- **Purpose:** Bridges macOS media keys to web players (YouTube, etc.)
-- **Setup notes:** Allow Accessibility permission.
-
-### Airfoil + Airfoil Satellite
-- **Install:** https://rogueamoeba.com/airfoil/ (paid app; license)
-- **Purpose:** Stream audio from Mac to AirPlay receivers / other Macs
-- **Setup notes:** Sign in / license key.
-
-### macFUSE
-- **Install:** https://osxfuse.github.io/
-- **Purpose:** Filesystem-in-userspace framework (for mounting NAS shares as macOS filesystems beyond SMB/AFP, or for Transmit)
-- **Setup notes:** System extension; reboot required after install. Approve in System Settings.
+- **Use:** https://usevia.app/ — web app, no install. Re-flashes keymap layers on QMK/VIA-compatible keyboards directly in the browser via WebHID.
 
 ---
 
@@ -249,32 +200,6 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 ### Visual Studio Code
 - **Install:** https://code.visualstudio.com/ (or `brew install --cask visual-studio-code` if you want to bring it into brew management)
 - **Setup notes:** Sign in to Settings Sync (Microsoft account) for extensions + settings. Issue #48 in life-atlas tracks the long-term VS Code sync strategy.
-
-### Sublime Text
-- **Install:** https://www.sublimetext.com/download (+ license)
-- **Setup notes:** License key.
-
-### iTerm
-- **Install:** https://iterm2.com/ (you also have Ghostty via brew + Warp; iTerm is third)
-- **Setup notes:** Standalone. Optional given Ghostty + Warp.
-
-### Warp Terminal
-- **Install:** https://www.warp.dev/
-- **Setup notes:** Sign in. Note: harness's `claude` wrapper runs in any terminal.
-
-### Transmit
-- **Install:** https://panic.com/transmit/ (+ license)
-- **Purpose:** FTP/SFTP/S3/etc. client from Panic
-- **Setup notes:** License key.
-
----
-
-## Gaming / streaming
-
-### GeForce NOW
-- **Install:** https://www.nvidia.com/en-us/geforce-now/download/
-- **Purpose:** Cloud gaming
-- **Setup notes:** Sign in to Nvidia account.
 
 ---
 
@@ -343,12 +268,6 @@ These auto-launch at login on AM2. Most are set up automatically by their parent
 
 ---
 
-## Preference panes
-
-- **macFUSE.prefPane** at `/Library/PreferencePanes/` — see macFUSE entry in System / hardware section above.
-
----
-
 ## System extensions (need approval in System Settings after install)
 
 Approval prompt appears the first time the parent app launches; usually a one-time gate.
@@ -356,13 +275,74 @@ Approval prompt appears the first time the parent app launches; usually a one-ti
 | Extension | Parent app | State on AM2 |
 |---|---|---|
 | Tailscale Network Extension | Tailscale.app | activated enabled |
-| Logitech G HUB HID Driver Extension | Logi G HUB | activated, **waiting for user** approval |
 | OBS Virtual Camera | OBS Studio | activated enabled |
+
+---
+
+## Mac App Store apps
+
+These used to be `mas` entries in the Brewfile. As of 2026-05-25 they're documented here instead because `mas install` is broken on macOS 26.5 (requires sudo + several ADAM IDs return "No apps found"). Install via the App Store GUI — search by name, click Get/Install.
+
+| App | ADAM ID | Notes |
+|---|---|---|
+| Blackmagic Disk Speed Test | 425264550 | |
+| Fantastical | 975937182 | Calendar (paid) |
+| GarageBand | 682658836 | |
+| Harvest | 506189836 | Time tracking (paid) |
+| iMovie | 408981434 | |
+| Keynote | 409183694 | (Note: "Keynote Creator Studio" is a separate Apple app already on AM5; install Keynote proper only if you specifically need iWork.) |
+| Meeter | 1510445899 | Auto-launches video calls. Login Item — enable in Meeter preferences. |
+| NordVPN | 905953485 | Login Item — enable in NordVPN preferences. Vendor-direct download also works (https://nordvpn.com). |
+| Numbers | 409203825 | See Keynote note. |
+| Pages | 409201541 | See Keynote note. |
+| Paprika Recipe Manager 3 | 1303222628 | Paid app. |
+| Shazam | 897118787 | |
+| Slack | 803453959 | Vendor-direct download also works (https://slack.com/downloads/mac). |
+| The Unarchiver | 425424353 | |
+
+---
+
+## Archived / no longer in use
+
+Apps that were on AM2 but are NOT being brought forward to AM5. Kept here as an audit trail — if a future need surfaces, the install pointer is already documented.
+
+Pruned 2026-05-25 during plan 0007 Phase 5 AM5 onboarding.
+
+### AI clients
+- **Copilot.app** — Microsoft Copilot desktop. Install: Microsoft Store / https://copilot.microsoft.com.
+
+### Communication
+- **Linear** — workspace task tracker. Install: https://linear.app/download.
+- **GoToMeeting** — meeting client; was kept only for the rare meeting that required it. Install: https://www.gotomeeting.com.
+
+### Productivity
+- **Alfred 5** — launcher; superseded by Raycast. Install: https://www.alfredapp.com/ (Powerpack license if upgrading).
+- **Sketch** — design tool; superseded by Figma. Install: https://www.sketch.com/download/mac.
+- **Pencil (HTML5 mockups)** — wireframing. Install: https://pencil.evolus.vn/.
+
+### Media / photo / video
+- **Calibre** — eBook management. Install: https://calibre-ebook.com/download_osx.
+
+### System / hardware
+- **Logitech G HUB** — G-series peripheral configuration; carried a "waiting for user" driver-extension gate on AM2 and isn't needed without G-series gear. Install: https://www.logitechg.com/en-us/innovation/g-hub.html.
+- **VIA (native)** — replaced by the **usevia.app** web app (see System / hardware section above). Native release: https://github.com/the-via/releases.
+- **BeardedSpice** — media-key bridge to web players. Install: https://github.com/beardedspice/beardedspice.
+- **Airfoil + Airfoil Satellite** — Mac → AirPlay audio streaming (paid). Install: https://rogueamoeba.com/airfoil/.
+- **macFUSE** — filesystem-in-userspace; was a dependency for Transmit-style mounts. Install: https://osxfuse.github.io/.
+
+### Editors / terminals
+- **Sublime Text** — superseded by VS Code. Install: https://www.sublimetext.com/download (+ license).
+- **iTerm** — superseded by Ghostty (+ Warp historically). Install: https://iterm2.com/.
+- **Warp Terminal** — superseded by Ghostty. Install: https://www.warp.dev/.
+- **Transmit** — FTP/SFTP client (paid); no current need. Install: https://panic.com/transmit/.
+
+### Gaming / streaming
+- **GeForce NOW** — cloud gaming. Install: https://www.nvidia.com/en-us/geforce-now/download/.
 
 ---
 
 ## Notes / things to revisit
 
 - `ai.hermes.gateway.plist` and `com.dreamhome.sweepstakes.plist` LaunchAgents: investigate or remove before AM5 onboarding to avoid carrying cruft.
-- Logi G HUB driver extension is "waiting for user" on AM2 — approve next time you're in System Settings; same gate will exist on AM5.
 - Spark Desktop's cask was renamed `spark` → `spark-app` (note from old Brewfile); use `spark-app` if you ever cask it.
+- `mas install` regression on macOS 26.5 is tracked as a life-atlas drift issue (#53); consider revisiting the Brewfile if a future Homebrew/mas release fixes it.
