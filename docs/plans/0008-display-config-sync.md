@@ -38,13 +38,71 @@ Reconnaissance on AM5 (this session, host=`AM5`):
 - BetterDisplay installed; `~/Library/Preferences/pro.betterdisplay.BetterDisplay.plist` exists with 166 entries — mostly auto-discovered display state (Display:2, Display:3 EDID-derived properties), Paddle license activation hash, and a small set of user-configured menu density flags
 - BetterDisplay layout files: `~/Library/Application Support/BetterDisplay/762421.padl` (1.7 KB, binary plist) and `762421.spadl` (1.0 KB, binary plist containing `license_data`)
 
-AM2 state: **unknown from this session.** The audit phase resolves this.
+AM2 state: see [Audit results](#audit-results) below.
 
 What we already know about the file-format constraints:
 
 - `display_switch` config is a plain INI — safe to relocate + symlink
 - BetterDisplay `.padl` / `.spadl` are regular files the app reads/writes directly (not cfprefsd-managed) — safe to symlink
 - The main BetterDisplay `.plist` lives in the macOS Preferences store managed by `cfprefsd`, which atomic-renames on write and will break a symlink. If we want it portable, the right pattern is periodic `defaults export` snapshots, not a symlink.
+
+## Audit results
+
+Audit run on AM2 on 2026-05-25. Phase 1 step 1 inspections below.
+
+### `display_switch`
+
+- Binary at `/opt/homebrew/bin/display_switch` (Brewfile-installed)
+- LaunchAgent at `~/Library/LaunchAgents/homebrew.mxcl.display_switch.plist`; `brew services list` reports `started`; process running (pid 1468 at audit time)
+- LaunchAgent plist hard-codes only the binary path (`/opt/homebrew/opt/display_switch/bin/display_switch`); no `-c` flag, no env vars — the binary discovers its config file via its own search algorithm
+- **Config found at non-standard path**: `~/Library/Preferences/display-switch.ini` (NOT at `~/Library/Application Support/display-switch/` or `~/.config/display-switch/` as Phase 1 expected). 3 lines:
+
+  ```ini
+  usb_device = "05e3:0610"
+  on_usb_connect_execute = "/usr/local/bin/betterdisplaycli set -namelike=LG -ddcAlt -vcp=inputSelectAlt -value=209"
+  on_usb_disconnect_execute = "/usr/local/bin/betterdisplaycli set -namelike=LG -ddcAlt -vcp=inputSelectAlt -value=208"
+  ```
+
+- Log at `~/Library/Logs/display-switch/display-switch.log` confirms the service is actively reacting to USB events on the laptop alone (USB device disconnected → "Did not detect any DDC-compatible displays" — expected when the external setup is detached)
+- `betterdisplaycli` lives at `/usr/local/bin/betterdisplaycli` (owner `root:wheel`, ~218 KB) — installed by the BetterDisplay app's "Install CLI tool" action, **not** by Homebrew. The Apple Silicon Homebrew prefix `/opt/homebrew/bin/` has no symlink for it
+
+**Verdict: PORT.** Config is small, intentional, and used. Atlas-backed symlink is straightforward provided Phase 2 confirms `/usr/local/bin/betterdisplaycli` exists on AM5 (likely fine since BetterDisplay is installed on both — but verify before the move).
+
+**Phase 2 amendments needed:**
+- Source path is `~/Library/Preferences/display-switch.ini`, not the App Support / `.config` paths the original draft mentioned
+- Phase 2 step 4 should additionally verify `betterdisplaycli` path is identical on AM5 before/after move
+
+### BetterDisplay plist
+
+- `~/Library/Preferences/pro.betterdisplay.BetterDisplay.plist`: 61,428 bytes; `defaults read` produces 805 lines (vs AM5's ~166)
+- 11 tagged displays in `displayTagIDs = "[2,3,4,28,31,32,41,45,52,53,57]"` (vs AM5's 2) — AM2 has accumulated per-display state for many more monitors over time
+- License-ID `762421` matches AM5 (Paddle ID is per-account, not per-machine). Activation hash: `Paddle-BetterDisplay-762421-SD = 0c07c1953422a66d40c9ddb1376d08bf3e33846b61b7476eb35ac74c315560c3`
+- Real user-configured settings present (filtered for non-auto-discovered keys):
+  - **Custom resolution override for display `v9747m8227`**: `manualResolutionList = "[[1920,550,3]]"`, `overrideDefaultResolution = 1`, `overridesEnabled = 1`, default resolution 3840×1100@60Hz. This is meaningful config, not auto-discovery.
+  - Customized menu density across ~30 `menuLevel*` keys (mix of `more`/`less`/`hide`)
+  - `showAdvancedDisplaysSettings = 1`, `showAdvancedMenuAppearance = 1`, `showAdvancedVirtualScreensSettings = 1`
+
+**Verdict: SKIP per plan** (cfprefsd-unsafe — plan already excluded). Worth flagging: the resolution override above is the only meaningful piece of cross-machine-portable config in the plist; it will not propagate to AM5 unless a future plan revisits the cfprefsd-export approach. Not in scope for 0008.
+
+### BetterDisplay layout files (`.padl` / `.spadl`)
+
+- `~/Library/Application Support/BetterDisplay/762421.padl` (1,673 bytes) and `762421.spadl` (1,017 bytes)
+- Both are NSKeyedArchiver-wrapped binary plists (`Apple binary property list` per `file(1)`)
+- `.padl` schema: `file_version=1`, `sdk_version=4`, `file_platform=mac`, `product_data` (1,280-byte opaque blob)
+- `.spadl` schema: `file_version=1`, `sdk_version=4`, `file_platform=mac`, `license_data` (624-byte opaque blob)
+- Same license-ID `762421` as AM5; AM5's files are similar size (~1,700 / ~1,000 bytes per the original recon) — both machines appear to already have functional license activation independently
+
+**Verdict: SKIP recommended.** Contents are opaque license/activation blobs (no layout/display-arrangement payload visible in the unwrapped structure). AM5 already has equivalent-size files; syncing would gain nothing demonstrable and risks license-activation flakiness. The plan's Phase 3 open question ("does the user actively rely on BetterDisplay pinning today") resolves to "no observable cross-machine value worth porting."
+
+If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisit with concrete evidence — but absent that, leave both machines machine-local.
+
+### Summary
+
+| App | Verdict | Action |
+|---|---|---|
+| `display_switch` | **Port** | Proceed with Phase 2 (with source-path amendment noted above; betterdisplaycli must be installed on AM5 first — not yet done) |
+| BetterDisplay plist | Skip | Out of scope per plan (cfprefsd-unsafe) |
+| BetterDisplay `.padl` / `.spadl` | **Abandoned** | Phase 3 abandoned — no demonstrable cross-machine value |
 
 ## Approach
 
@@ -65,18 +123,36 @@ What we already know about the file-format constraints:
 
 ### Phase 2 — `display_switch` Atlas sync (conditional on Phase 1)
 
-**Goal:** If AM2 has a working `display_switch` config, make it the cross-device source of truth via Atlas.
+**Goal:** Make AM2's working `display_switch` config the cross-device source of truth via Atlas; bring AM5 from half-install to fully configured.
+
+**State going in (per Phase 1 audit):**
+- **AM2:** configured + running. Source config at `~/Library/Preferences/display-switch.ini` (non-standard location; `display_switch` finds it via its own search algorithm).
+- **AM5:** half-install. `display_switch` binary present (Brewfile-installed at `/opt/homebrew/bin/display_switch`), but LaunchAgent unloaded (`brew services list` reports `none`), no `betterdisplaycli`, no config file.
 
 **Steps:**
-1. Create `~/Atlas/config/apps/display-switch/` with a short `README.md` describing the symlink convention.
-2. On AM2: move the existing config into Atlas; symlink it back to the original path.
-3. On AM5: install `display_switch` via Brewfile if not already done; symlink `~/Atlas/config/apps/display-switch/display-switch.ini` → expected config path.
-4. `brew services restart display_switch` on both machines; confirm the service comes up cleanly and the LaunchAgent picks up the new path.
-5. Document the symlink + service-restart step in `environment/apps-manual.md` under the existing `display_switch` mention.
 
-**Exit criteria:** Both machines run `display_switch` reading from Atlas; editing the file on either machine takes effect on the other (after a service restart).
+1. Create `~/Atlas/config/apps/display-switch/` with a short `README.md` describing the symlink convention and which devices are participating.
+
+2. **On AM2** (already configured — move config into Atlas without dropping the service):
+   1. Move `~/Library/Preferences/display-switch.ini` → `~/Atlas/config/apps/display-switch/display-switch.ini`.
+   2. Symlink it back: `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`.
+   3. `brew services restart display_switch`. Tail `~/Library/Logs/display-switch/display-switch.log` to confirm clean restart and that the service reads through the symlink.
+
+3. **On AM5** (half-install → fully configured). Ordering matters — each step depends on the previous:
+   1. Install `betterdisplaycli`: open BetterDisplay → menu → "Install CLI tool". Verify `/usr/local/bin/betterdisplaycli` exists with `root:wheel` ownership. **Must happen before the LaunchAgent first-starts (sub-step 3 below)**, otherwise `display_switch` will fail with `Exited with status 1` the moment a USB event fires.
+   2. Create the symlink: `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`. (Atlas-side file already exists from step 2 above.)
+   3. First-start the LaunchAgent: `brew services start display_switch` (first start, not restart). Verify `brew services list` shows `started` and a process is running.
+   4. Next USB connect/disconnect of the watched device (`05e3:0610`), inspect `~/Library/Logs/display-switch/display-switch.log` and confirm `betterdisplaycli` runs cleanly (no `Exited with status 1`).
+
+4. Document the symlink convention + AM5-first-time setup ordering in `environment/apps-manual.md` under the existing `display_switch` mention.
+
+**Exit criteria:** Both machines run `display_switch` reading from Atlas; editing the file on either machine takes effect on the other (after a service restart on the editing-machine side).
 
 ### Phase 3 — BetterDisplay layout sync (conditional on Phase 1)
+
+**Status: Abandoned (2026-05-25).** Phase 1 audit resolved this: `.padl` / `.spadl` files on AM2 contain only opaque license/activation blobs (no layout/display-arrangement payload visible), and AM5 already has equivalent-size files from its own independent activation. No demonstrable cross-machine value. Leaving both machines machine-local. If concrete evidence later surfaces that AM5 is missing layout state AM2 has, reopen with that evidence.
+
+Original goal (retained for reference):
 
 **Goal:** If AM2's `.padl`/`.spadl` files contain meaningful pinning data not present on AM5, sync them via Atlas. Skip the main plist (cfprefsd-unsafe; menu-density settings are too thin to justify a snapshot script).
 
@@ -104,3 +180,6 @@ What we already know about the file-format constraints:
 ## Status log
 
 - 2026-05-25 — Plan drafted (Phases 1–3 outlined; AM2 audit needed before Phase 2/3 can start)
+- 2026-05-25 — Phase 1 audit complete on AM2. Results recorded above. Verdicts: `display_switch` → port (Phase 2 ready with source-path amendment); BetterDisplay plist → skip (per plan); BetterDisplay `.padl`/`.spadl` → skip recommended (no demonstrable cross-machine value).
+- 2026-05-25 — Phase 3 marked **Abandoned** following audit. Phase 2 amended with explicit AM5 prereq: install `betterdisplaycli` (not yet done) before symlinking the .ini.
+- 2026-05-25 — Phase 2 rewritten with per-machine step blocks. AM2 (move config into Atlas, symlink back, restart service) + AM5 (half-install → install betterdisplaycli → symlink → first-start LaunchAgent → verify on next USB event). Ordering preserved so AM5 first-time setup can't hit `Exited with status 1` from missing `betterdisplaycli`.
