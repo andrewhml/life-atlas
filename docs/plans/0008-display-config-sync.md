@@ -123,30 +123,52 @@ If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisi
 
 ### Phase 2 — `display_switch` Atlas sync (conditional on Phase 1)
 
-**Goal:** Make AM2's working `display_switch` config the cross-device source of truth via Atlas; bring AM5 from half-install to fully configured.
+**Goal:** Make AM2's working `display_switch` config the cross-device source of truth via Atlas; bring AM5 from half-install to fully configured. Both machines converge on a single Homebrew-managed `betterdisplaycli` install path.
 
-**State going in (per Phase 1 audit):**
-- **AM2:** configured + running. Source config at `~/Library/Preferences/display-switch.ini` (non-standard location; `display_switch` finds it via its own search algorithm).
-- **AM5:** half-install. `display_switch` binary present (Brewfile-installed at `/opt/homebrew/bin/display_switch`), but LaunchAgent unloaded (`brew services list` reports `none`), no `betterdisplaycli`, no config file.
+**Strategy pivot 2026-05-26 (Option B).** Initial plan called for the BetterDisplay GUI "Install CLI tool" menu action on AM5 to mirror AM2's `/usr/local/bin/betterdisplaycli` (a ~218 KB launcher owned `root:wheel`). User decision: drop the GUI step in favor of the Homebrew formula `waydabber/betterdisplay/betterdisplaycli`, which installs a real CLI binary to `/opt/homebrew/bin/betterdisplaycli` via `brew bundle`. Trade-off accepted: formula has no published bottle (`brew info` shows none), so it compiles from source via Swift and requires full Xcode ≥14 on each machine (AM5 currently has CLT only; AM2 status TBD). The Homebrew **cask** shim at `/opt/homebrew/bin/betterdisplaycli` from `waydabber/betterdisplay/betterdisplay` is a different artifact (bare `exec` to the GUI app binary) and is NOT a substitute — installing the formula overwrites/replaces it with the real binary. Empirical test of the cask shim:
+
+```
+$ /opt/homebrew/bin/betterdisplaycli version
+Some uninterpreted or system arguments are present - proceeding with app launch.
+Please note that the app already had 2 running instances and now an additional instance was started.
+```
+
+**State after AM2 block (Step 2 below, complete 2026-05-25 pre-pivot):**
+- AM2: `display_switch` running. `~/Library/Preferences/display-switch.ini` symlinked → `~/Atlas/config/apps/display-switch/display-switch.ini`. .ini currently calls `/usr/local/bin/betterdisplaycli` (the GUI-installed one).
+- AM5: Atlas .ini visible (synced). No symlink, service not started. `display_switch` half-installed (binary present, LaunchAgent unloaded).
+- Both: `/opt/homebrew/bin/betterdisplaycli` shim from the cask is present (do not rely on it).
 
 **Steps:**
 
-1. Create `~/Atlas/config/apps/display-switch/` with a short `README.md` describing the symlink convention and which devices are participating.
+1. ~~Create `~/Atlas/config/apps/display-switch/` with a short `README.md`~~ **DONE 2026-05-25.**
 
-2. **On AM2** (already configured — move config into Atlas without dropping the service):
-   1. Move `~/Library/Preferences/display-switch.ini` → `~/Atlas/config/apps/display-switch/display-switch.ini`.
-   2. Symlink it back: `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`.
-   3. `brew services restart display_switch`. Tail `~/Library/Logs/display-switch/display-switch.log` to confirm clean restart and that the service reads through the symlink.
+2. ~~**On AM2** (move config into Atlas without dropping service): move .ini → Atlas, symlink back, restart service.~~ **DONE 2026-05-25.**
 
-3. **On AM5** (half-install → fully configured). Ordering matters — each step depends on the previous:
-   1. Install `betterdisplaycli`: open BetterDisplay → menu → "Install CLI tool". Verify `/usr/local/bin/betterdisplaycli` exists with `root:wheel` ownership. **Must happen before the LaunchAgent first-starts (sub-step 3 below)**, otherwise `display_switch` will fail with `Exited with status 1` the moment a USB event fires.
-   2. Create the symlink: `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`. (Atlas-side file already exists from step 2 above.)
-   3. First-start the LaunchAgent: `brew services start display_switch` (first start, not restart). Verify `brew services list` shows `started` and a process is running.
-   4. Next USB connect/disconnect of the watched device (`05e3:0610`), inspect `~/Library/Logs/display-switch/display-switch.log` and confirm `betterdisplaycli` runs cleanly (no `Exited with status 1`).
+3. **Update Brewfile** to add the `betterdisplaycli` formula. **DONE 2026-05-26.** Brewfile now declares `brew "waydabber/betterdisplay/betterdisplaycli"` and the tap comment is updated to reflect its real consumer.
 
-4. Document the symlink convention + AM5-first-time setup ordering in `environment/apps-manual.md` under the existing `display_switch` mention.
+4. **Install Xcode ≥14 on each machine that doesn't have it.** Required for the formula to compile (no bottle). User-driven; App Store install, multi-GB. AM5 verified missing (`/Applications/Xcode.app` absent, `xcode-select -p` reports CLT only). AM2 status TBD — check before running `brew bundle` there.
 
-**Exit criteria:** Both machines run `display_switch` reading from Atlas; editing the file on either machine takes effect on the other (after a service restart on the editing-machine side).
+5. **Run `brew bundle` on each machine** (from `environment/` in the life-atlas repo) to install the formula. Verify after each run:
+   ```
+   ls -la /opt/homebrew/bin/betterdisplaycli  # should be a real Mach-O binary, not a wrapper.sh symlink
+   betterdisplaycli help                       # should print help text, not spawn the GUI
+   ```
+   If the binary is still the cask shim, `brew uninstall --cask` the cask version first (or the formula install will refuse to overwrite). Order doesn't matter between machines for this step; the .ini cutover (step 6) is the synchronization point.
+
+6. **Coordinated `.ini` cutover.** Once **both** AM2 and AM5 have `/opt/homebrew/bin/betterdisplaycli` working as a real CLI, edit `~/Atlas/config/apps/display-switch/display-switch.ini` to change both `betterdisplaycli` invocations from `/usr/local/bin/betterdisplaycli` → `/opt/homebrew/bin/betterdisplaycli`. **Doing this before AM2 has the formula will break AM2's running service on the next USB event.**
+
+7. **AM2: restart service** to pick up the new path. `brew services restart display_switch`; tail `~/Library/Logs/display-switch/display-switch.log` to confirm `Configuration loaded` parses cleanly and the next USB event runs `betterdisplaycli` with exit status 0.
+
+8. **AM5: wire up and start.**
+   1. `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`.
+   2. `brew services start display_switch` (first start, not restart). Verify `brew services list` shows `started` with a running pid.
+   3. Trigger a USB connect/disconnect of the watched device (vid:pid `05e3:0610`). Tail the log; expect a clean `betterdisplaycli` invocation with no `Exited with status 1`.
+
+9. **Documentation.** Update `environment/apps-manual.md`: BetterDisplay setup notes + the `betterdisplaycli` entry now reflect Option B as the chosen path (`brew install` + Xcode prereq). The GUI install + the cask shim remain documented as alternatives with their respective failure modes. (Note: an earlier doc pass for the GUI-install approach landed on 2026-05-25; that needs reworking under this pivot — track in Task #3.)
+
+10. **AM2 cleanup (optional, low-priority).** AM2 still has `/usr/local/bin/betterdisplaycli` from the original GUI install. Harmless to leave; if cleanliness is preferred, remove it after step 7 verifies the formula path works (`sudo rm /usr/local/bin/betterdisplaycli`).
+
+**Exit criteria:** Both machines run `display_switch` reading from Atlas, with `betterdisplaycli` resolved through `/opt/homebrew/bin/` from the Homebrew formula. Editing the .ini on either machine takes effect on the other after a service restart.
 
 ### Phase 3 — BetterDisplay layout sync (conditional on Phase 1)
 
@@ -183,3 +205,5 @@ Original goal (retained for reference):
 - 2026-05-25 — Phase 1 audit complete on AM2. Results recorded above. Verdicts: `display_switch` → port (Phase 2 ready with source-path amendment); BetterDisplay plist → skip (per plan); BetterDisplay `.padl`/`.spadl` → skip recommended (no demonstrable cross-machine value).
 - 2026-05-25 — Phase 3 marked **Abandoned** following audit. Phase 2 amended with explicit AM5 prereq: install `betterdisplaycli` (not yet done) before symlinking the .ini.
 - 2026-05-25 — Phase 2 rewritten with per-machine step blocks. AM2 (move config into Atlas, symlink back, restart service) + AM5 (half-install → install betterdisplaycli → symlink → first-start LaunchAgent → verify on next USB event). Ordering preserved so AM5 first-time setup can't hit `Exited with status 1` from missing `betterdisplaycli`.
+- 2026-05-25 — **Phase 2 Step 1 + AM2 block complete.** Created `~/Atlas/config/apps/display-switch/` with README. Moved `display-switch.ini` into Atlas via scratch+mv (cloud-sync etiquette), diff-verified, removed original, symlinked back to `~/Library/Preferences/display-switch.ini`. `brew services restart display_switch` clean; new pid 15713; log confirms `Configuration loaded ("/Users/andrewlee/Library/Preferences/display-switch.ini")` reads through the symlink and parses all 3 keys. AM5 block remains; documentation step waits for AM5 completion.
+- 2026-05-26 — **Strategy pivot to Option B.** User-directed switch from GUI "Install CLI tool" (`/usr/local/bin/betterdisplaycli`) to Homebrew formula `waydabber/betterdisplay/betterdisplaycli` (`/opt/homebrew/bin/betterdisplaycli`). Confirmed: formula has no bottle → full Xcode ≥14 required on each machine. Cask shim from `waydabber/betterdisplay/betterdisplay` proven non-equivalent via empirical test (spawns extra GUI instance instead of returning a version string). Phase 2 rewritten with new step ordering: Brewfile update → Xcode install → `brew bundle` on each machine → coordinated `.ini` path cutover → AM2 restart → AM5 symlink + start. Brewfile updated on this date.
