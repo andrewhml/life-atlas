@@ -64,7 +64,7 @@ brew "immich-cli"                # Immich photo manager CLI (plans 0002, 0005)
 brew "bitwarden-cli"             # `bw` — Bitwarden command-line
 
 # ── CLI: system / maintenance ─────────────────────────────────────
-brew "mole"                      # deep clean + optimize the Mac
+brew "mole"                      # deep clean + optimize the Mac (CLI; GUI sibling = `mole-app` cask below)
 
 # ── Display switching (USB-C KVM via DDC/CI; plan 0008) ───────────
 brew "m1ddc"                     # underlying DDC/CI control for Apple Silicon
@@ -80,6 +80,7 @@ brew "waydabber/betterdisplay/betterdisplaycli"  # CLI invoked by display_switch
 # ── Casks (truly brew-managed) ────────────────────────────────────
 cask "font-meslo-lg-nerd-font"   # required for p10k icons (plan 0003)
 cask "ghostty"                   # terminal emulator (plan 0003)
+cask "mole-app"                  # GUI version of `brew "mole"` (same upstream project, tw93/Mole)
 
 # ── App Store apps ────────────────────────────────────────────────
 # `mas install` is broken on macOS 26.5 (requires sudo + several ADAM IDs return
