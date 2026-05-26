@@ -1,57 +1,102 @@
 # Brewfile — MacBook Pro (Personal)
 #
+# Reconciled 2026-05-25 against `brew bundle dump` on AM2 (host=AM2, M2 Pro)
+# during plan 0007 Phase 3. Reflects actual brew-managed state.
+#
 # Run from this directory:  brew bundle
 # Check drift without writes:  brew bundle check --verbose
-# Update from current state:  brew bundle dump --force --describe
+# Update from current state:  brew bundle dump --file=/tmp/Brewfile.dump --force --describe
+#   (always dump to /tmp first, never overwrite this file directly — comments
+#    and structure get clobbered by --force)
 #
-# Idempotent: re-running is safe. Entries already installed are skipped.
-# This is a MINIMAL starter Brewfile — reconcile with `brew bundle dump`
-# from the old MacBook when available.
+# Idempotent: re-running `brew bundle` is safe. Entries already installed are skipped.
+#
+# Natively-installed apps (drag-to-Applications, Adobe Creative Cloud, etc.)
+# live in environment/apps-manual.md, NOT here. See plan 0007 Phase 4.
+
+# ── Taps ──────────────────────────────────────────────────────────
+tap "haimgel/tools"              # for display_switch
+tap "waydabber/betterdisplay"    # for BetterDisplay (currently unused tap kept for parity with AM2)
 
 # ── CLI: shell + prompt ───────────────────────────────────────────
-brew "powerlevel10k"          # zsh theme, already installed
-brew "starship", restart_service: false  # alternative prompt; keep dormant unless wired in
-brew "bash"                   # newer bash than macOS default
+brew "bash"                      # newer bash than the macOS-bundled one
+brew "powerlevel10k"             # zsh theme (plan 0003)
 
 # ── CLI: dev essentials ───────────────────────────────────────────
-brew "git"                    # newer git than Xcode CLT
-brew "gh"                     # GitHub CLI (issues, PRs, label setup per CLAUDE.md)
-brew "fnm"                    # Fast Node Manager
-brew "mas"                    # Mac App Store CLI
+brew "git"                       # newer git than Xcode CLT
+brew "gh"                        # GitHub CLI (issues, PRs, label setup per CLAUDE.md)
+brew "fnm"                       # Fast Node Manager (sources the npm globals declared below)
+brew "mas"                       # Mac App Store CLI (powers the `mas` entries below)
+brew "gitleaks"                  # secret scanner (plan 0007 Phase 2f)
 
 # ── CLI: modern unix replacements ─────────────────────────────────
-brew "ripgrep"                # rg — fast grep
-brew "fd"                     # find replacement
-brew "bat"                    # cat with syntax highlighting
-brew "eza"                    # ls replacement
-brew "fzf"                    # fuzzy finder
-brew "jq"                     # JSON processor
-brew "yq"                     # YAML processor
-brew "tree"                   # directory tree view
-brew "wget"
-brew "htop"
+brew "ripgrep"                   # rg — fast grep
+brew "fd"                        # find replacement
+brew "bat"                       # cat with syntax highlighting
+brew "eza"                       # ls replacement
+brew "fzf"                       # fuzzy finder
+brew "jq"                        # JSON processor
+brew "yq"                        # YAML processor
+brew "tree"                      # directory tree view
+brew "wget"                      # HTTP/FTP fetcher
+brew "htop"                      # interactive process viewer
 
-# ── Fonts ─────────────────────────────────────────────────────────
-cask "font-meslo-lg-nerd-font"  # already installed; required for p10k icons
+# ── CLI: language runtimes ────────────────────────────────────────
+brew "python@3.12"               # explicit pin; tools (uvx, etc.) follow
 
-# ── Apps: already installed (claim for declarative management) ────
-cask "adobe-creative-cloud"   # Lr + Ai installed via CC manually
-cask "figma"
-cask "google-drive"
-cask "whatsapp"
+# ── CLI: media / photo ────────────────────────────────────────────
+brew "ffmpeg"                    # audio/video transcoding
+brew "pango"                     # i18n text layout (transitive but pinned)
+brew "poppler"                   # PDF rendering
+brew "wimlib"                    # Windows Imaging Format support (for PC tooling)
+brew "immich-cli"                # Immich photo manager CLI (plans 0002, 0005)
 
-# ── Apps: editors / terminal ──────────────────────────────────────
-cask "visual-studio-code"     # already installed; declare for reinstall
-cask "ghostty"                # already installed; cask available now
+# ── CLI: security / secrets ───────────────────────────────────────
+brew "bitwarden-cli"             # `bw` — Bitwarden command-line
 
-# ── Apps: productivity / browsers / media ─────────────────────────
-cask "brave-browser"          # already installed
-cask "raycast"                # already installed
-cask "spotify"                # already installed
-cask "spark-app"              # Spark Desktop (cask was renamed from `spark`)
+# ── CLI: system / maintenance ─────────────────────────────────────
+brew "mole"                      # deep clean + optimize the Mac
 
-# ── NOT brew-managed (intentional) ────────────────────────────────
-# - Claude.app   — installed via Anthropic native installer
-# - Codex.app    — installed via OpenAI native installer
-# - Lightroom CC, Illustrator 2026 — installed via Adobe Creative Cloud (sub-apps)
-# - macOS bundled apps (Safari, iMovie, GarageBand, iWork suite)
+# ── Display switching (USB-C KVM via DDC/CI; plan TBD) ────────────
+brew "m1ddc"                     # underlying DDC/CI control for Apple Silicon
+brew "haimgel/tools/display_switch"  # watches USB connect/disconnect → switches monitor input
+
+# ── Casks (truly brew-managed) ────────────────────────────────────
+cask "font-meslo-lg-nerd-font"   # required for p10k icons (plan 0003)
+cask "ghostty"                   # terminal emulator (plan 0003)
+
+# ── App Store apps (via mas) ──────────────────────────────────────
+# To find an app's id:  mas search "<name>"
+# To install/upgrade:    `brew bundle` (mas honors these entries)
+mas "Blackmagic Disk Speed Test", id: 425264550
+mas "Fantastical",                id: 975937182
+mas "GarageBand",                 id: 682658836
+mas "Harvest",                    id: 506189836
+mas "iMovie",                     id: 408981434
+mas "Keynote",                    id: 409183694
+mas "Meeter",                     id: 1510445899
+mas "NordVPN",                    id: 905953485
+mas "Numbers",                    id: 409203825
+mas "Pages",                      id: 409201541
+mas "Paprika Recipe Manager 3",   id: 1303222628
+mas "Shazam",                     id: 897118787
+mas "Slack",                      id: 803453959
+mas "The Unarchiver",             id: 425424353
+
+# ── NPM globals (via Brewfile's `npm` syntax; requires fnm-managed node) ──
+npm "@google/gemini-cli"         # Gemini CLI
+npm "@openai/codex"              # Codex CLI
+npm "planpong"                   # plan adversarial review (this repo uses it)
+npm "vercel"                     # Vercel CLI
+
+# ── NOT brew-managed (intentional — see environment/apps-manual.md) ──
+# Natively-installed apps and Adobe Creative Cloud sub-apps live in
+# apps-manual.md with install URLs + setup notes. They are NOT declared here.
+# Examples:
+#   - Brave Browser, Spotify, Raycast, Figma, WhatsApp, Spark Desktop
+#   - VS Code (currently native; could be moved to `cask "visual-studio-code"` via --adopt)
+#   - Google Drive for Desktop
+#   - Adobe Creative Cloud + Lightroom CC + Illustrator 2026
+#   - Claude.app (Anthropic native installer)
+#   - Codex.app (OpenAI native installer)
+#   - macOS-bundled (Safari, etc.)

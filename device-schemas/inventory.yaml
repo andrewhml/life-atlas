@@ -1,0 +1,633 @@
+# Atlas Device Inventory
+#
+# Single machine-readable rollup of every device, surface, and backup flow in
+# the Atlas ecosystem. Narrative detail for each device lives in the matching
+# device-schemas/*.md file; this file is the cross-cutting index.
+#
+# Purpose:
+#   1. Give Claude a compact, structured snapshot so future planning sessions
+#      start with full context instead of two hours of Q&A (see
+#      docs/ideas/atlas-dashboard.md for why this matters).
+#   2. Serve as the data source for a simple GUI/visualization (see Plan 0006
+#      once written — "Atlas Map" thin MVP).
+#
+# Conventions:
+#   - Sizes in GB/TB as decimal (1 TB = 1000 GB), matching vendor capacity
+#     labels. Use `_bytes` suffix for byte-exact values.
+#   - `null` or `tbd` = unknown, not yet measured. Never guess — a blank is
+#     honest, a wrong number propagates.
+#   - `verified` dates are when a human (or tool) last confirmed the value.
+#     Treat anything older than the value's volatility class as stale.
+#   - Cross-references to plans/issues are bare strings (e.g. "plan 0002
+#     phase 4", "issue #11") — not links — so git diffs stay clean.
+#
+# Update cadence: whenever a capacity, service, or backup flow changes, or at
+# minimum at /session-end when drift is caught.
+
+schema_version: 1
+generated: 2026-04-24
+generator: hand-curated from device-schemas/*.md + plan 0002 + plan 0005
+
+# ---------------------------------------------------------------------------
+# DEVICES
+# ---------------------------------------------------------------------------
+devices:
+
+  - id: macbook-personal
+    display_name: MacBook Pro (Personal, M2 Pro)
+    role: primary_workstation
+    schema_doc: device-schemas/macbook-personal.md
+    os: macOS 26.2 (build 25C56)
+    hardware:
+      cpu: Apple M2 Pro
+      model_identifier: Mac14,9
+      ram_gb: 16
+    storage:
+      - path: /System/Volumes/Data
+        filesystem: APFS
+        capacity_gb: 994  # 926 GiB
+        used_gb: 880  # 820 GiB
+        free_gb: 58   # 54 GiB — tighter than plan 0005 snapshot (was 69 GB on 2026-04-22)
+        verified: 2026-04-24
+        role: primary_work
+        notable_subpaths:
+          - path: ~/Pictures/2025-Photos
+            used_gb: 246
+            note: 38 GB behind Carbonizer — authority drift, plan 0005 phase 1
+          - path: ~/Pictures/2026-Photos
+            used_gb: 7.3
+          - path: ~/Pictures/Lightroom Library.lrlibrary
+            used_gb: 6.2
+          - path: ~/Pictures/Photos Library.photoslibrary
+            used_gb: 0.5
+            note: Effectively empty — iCloud Photos not in active use on Mac
+    future:
+      planned_replacement: MacBook M5 (2 TB) — plan 0005 phase 10; AM5 onboarding tracked in plan 0007
+
+  - id: macbook-m5
+    display_name: MacBook Pro (Personal, M5 — incoming)
+    role: secondary_workstation  # promotes to primary post plan 0007 Phase 6 cutover
+    schema_doc: null  # TODO: write device-schemas/macbook-m5.md after Phase 5 settles
+    os: macOS  # confirm version after onboarding
+    hardware:
+      cpu: Apple M5
+      ram_gb: tbd
+    storage:
+      - path: /System/Volumes/Data
+        filesystem: APFS
+        capacity_gb: 2000  # 2 TB per plan 0005 phase 10
+        used_gb: tbd
+        verified: null
+        role: primary_work_planned
+    status: onboarding  # plan 0007
+    related_plans:
+      - plan 0007 (onboarding + harness sync)
+      - plan 0005 phase 10 (replacement decision)
+
+  - id: pc-personal
+    display_name: Personal PC (Ryzen 7 9800X3D / RTX 5080)
+    role: secondary_workstation
+    schema_doc: device-schemas/pc-personal.md
+    os: Windows 11 Pro
+    hardware:
+      cpu: AMD Ryzen 7 9800X3D
+      gpu: NVIDIA RTX 5080
+      ram_gb: tbd
+    storage:
+      - path: C:\
+        capacity_gb: 4000
+        used_gb: 1500
+        verified: 2026-04-22
+        role: gaming_pc_dev_video_edit
+    backup:
+      system: not_configured  # open question in plan 0005
+
+  - id: macbook-work
+    display_name: MacBook Pro (Work, company-issued)
+    role: company_workstation
+    schema_doc: device-schemas/macbook-work.md
+    os: macOS
+    scope: out_of_personal_atlas
+    notes: Personal Atlas not synced here; company policy applies.
+
+  - id: iphone-16-pro
+    display_name: iPhone 16 Pro
+    role: mobile_primary
+    schema_doc: device-schemas/iphone.md
+    storage:
+      - path: internal
+        capacity_gb: 512
+        used_gb: 281
+        verified: 2026-04-22
+    apps:
+      - google-drive-ios
+      - immich-ios
+      - tailscale-ios
+    photo_pipeline:
+      primary_capture: true
+      immich_autobackup: enabled  # plan 0002 phase 1 complete
+      icloud_photos: enabled_but_full
+
+  - id: ipad-2024
+    display_name: iPad (2024)
+    role: mobile_secondary
+    schema_doc: device-schemas/ipad.md
+    storage:
+      - path: internal
+        capacity_gb: 1000
+        used_gb: 151
+        verified: 2026-04-22
+    apps:
+      - google-drive-ios
+      - lightroom
+      - immich-ios
+    photo_pipeline:
+      lightroom_masters: local_only  # NOT pushed to iCloud Photos (confirmed 2026-04-24)
+      lightroom_processed_jpegs: pushed_to_icloud
+      immich_autobackup: deferred  # no iPad-unique content today per plan 0002
+
+  - id: boox-palma-2
+    display_name: Boox Palma 2
+    role: ereader
+    content: calibre_fed
+    scope: narrow  # not a backup surface; noted for completeness
+
+  - id: ugreen-peddocks2
+    display_name: UGREEN DXP6800 (Peddocks2)
+    role: primary_nas
+    schema_doc: device-schemas/nas-services.md
+    structure_doc: device-schemas/nas-structure.md
+    os: Debian 12 (UGOS), kernel 6.12.30+
+    hardware:
+      cpu: Intel Core i5-1235U (12th Gen Alder Lake, 2P+8E, 12 threads)
+      igpu: Intel UHD Graphics (Alder Lake-UP3 GT2), /dev/dri/card0, /dev/dri/renderD128
+      ram_gb: 8
+      swap_gb: 6
+      bays_total: 6
+      bays_populated: 4
+      nvme_slots_total: 2
+      nvme_slots_populated: 2
+    ups:
+      model: CyberPower PR1500LCDRT2U
+      management: NUT (upsd, usbhid-ups, upsmon)
+      auto_shutdown: true
+    network:
+      hostname: DXP6800  # prompt shows Peddocks2 — naming drift tracked in issue #14
+      tailscale:
+        machine: dxp6800
+        full_domain: dxp6800.boston-marlin.ts.net
+        ipv4: 100.120.233.118
+        role: exit_node
+      ddns: peddocks.ddns.net
+      nics:
+        - name: eth0
+          negotiated: 1_gbe
+          capable_of: higher  # to confirm after switch upgrade
+        - name: eth1
+          negotiated: 1_gbe
+          capable_of: higher
+    storage:
+      pools:
+        - name: /volume1
+          backing: 4x 10.9 TB HDD in MD RAID 5 + LVM
+          filesystem: btrfs
+          capacity_tb: 21.8
+          used_tb: 11.0
+          used_pct: 48
+          fault_tolerance_drives: 1
+          verified: 2026-04-22
+          future:
+            phase4_target: 6-drive RAID 6, ~44 TB usable, 2-drive fault tolerance
+          drives:
+            - dev: /dev/sda
+              model: Seagate IronWolf ST12000VN0008
+              serial: ZRT2D8EX
+              smart: PASSED
+              realloc: 0
+              pending: 0
+              power_on_hours: 8900
+              temp_c: 38
+              checked: 2026-04-22
+            - dev: /dev/sdb
+              model: Seagate IronWolf ST12000VN0008
+              serial: ZRT2C61N
+              smart: PASSED
+              realloc: 0
+              pending: 0
+              power_on_hours: 8900
+              temp_c: 39
+              checked: 2026-04-22
+            - dev: /dev/sdd
+              model: Seagate IronWolf ST12000VN0008
+              serial: ZRT2DKE3
+              smart: PASSED
+              realloc: 0
+              pending: 0
+              power_on_hours: 8900
+              temp_c: 36
+              checked: 2026-04-22
+            - dev: /dev/sde
+              model: Seagate IronWolf ST12000VN0008
+              serial: ZRT2DFLX
+              smart: PASSED
+              realloc: 0
+              pending: 0
+              power_on_hours: 8901
+              temp_c: 35
+              checked: 2026-04-22
+        - name: /volume2
+          backing: 1x 931 GB NVMe (nvme1n1), MD RAID 1 single-member + LVM
+          filesystem: ext4
+          capacity_gb: 901
+          used_gb: 1.6
+          fault_tolerance_drives: 0
+          status: idle
+          intended_use: fast_app_pool (Immich ML cache, PG, Plex transcode — nas-services.md)
+        - name: /mnt/@usb/sdc2
+          backing: 1x 3.6 TB USB external
+          filesystem: exfat
+          capacity_tb: 3.6
+          used_tb: 2.3
+          status: legacy_plex_content
+          migration_target: reformat + rotating_offsite candidate
+      cache:
+        - device: nvme0n1
+          capacity_gb: 916
+          mode: LVM_write_back
+          fronts: /volume1
+    shares:
+      - name: personal_folder
+        mount_on_mac: /Volumes/personal_folder
+        purpose: atlas_mirror
+      - name: Media
+        mount_on_mac: /Volumes/Media
+        purpose: plex_library_and_photo_archive
+        subpaths:
+          - path: Media/photos
+            used_gb: 612
+            note: 2024 Photos 233 GB + Remote Year 93 GB + archive/ 187 GB
+      - name: Carbonizer_BU
+        mount_on_mac: /Volumes/Carbonizer_BU
+        purpose: ccc_target_for_carbonizer
+        verified: 2026-04-23
+      - name: TimeMachine
+        purpose: macbook_time_machine_target
+    services:
+      - name: plex
+        data: /volume1/docker/plex
+        public_url: plex.peddocks.ddns.net
+        port: 32400
+        hw_accel: true  # /dev/dri mapped
+      - name: immich
+        data: /volume1/docker/immich
+        public_url: immich.peddocks.ddns.net
+        port: 8212
+        hw_accel: true  # enabled 2026-04-22
+      - name: nginx-proxy-manager
+        data: /volume1/docker/npm
+        ports: [80, 81, 443]
+        known_issue: NOW() SQLite bug — nas-services.md
+      - name: portainer
+        public_url: portainer.peddocks.ddns.net
+      - name: overseerr
+        public_url: overseerr.peddocks.ddns.net
+        port: 5055
+      - name: sonarr
+        public_url: sonarr.peddocks.ddns.net
+        port: 8989
+      - name: radarr
+        public_url: radarr.peddocks.ddns.net
+        port: 7878
+      - name: lidarr
+        port: 8686
+      - name: qbittorrent
+        public_url: qbittorrent.peddocks.ddns.net
+        port: 8080
+      - name: gluetun
+        role: vpn_gateway_for_qbittorrent
+      - name: calibre
+        public_url: calibre.peddocks.ddns.net
+        port: 8083
+      - name: tailscale
+        role: exit_node
+
+  - id: synology-ds1019
+    display_name: Synology DS1019+
+    role: secondary_nas
+    schema_doc: null  # TODO: split from nas-services.md when repurposed
+    storage:
+      pools:
+        - backing: 5x 7.3 TB HDD SHR-2
+          capacity_tb: 11.4
+          used_tb: 9.6
+          fault_tolerance_drives: 2
+          verified: 2026-04-22
+          smart_baseline: pending  # issue #11 — priority/high, plan 0002 phase 4 prereq
+          drive_age_years: ~7
+      future:
+        phase4_target: wipe + rebuild SHR-2 as UGREEN backup target, 21.8 TB usable
+
+  - id: external-ssd-carbonizer
+    display_name: SanDisk 2TB External SSD — Carbonizer
+    role: mobile_external_ssd_primary
+    schema_doc: device-schemas/external-ssds.md
+    hardware:
+      capacity_tb: 1.8
+      filesystem: exfat
+      connection: USB-C direct
+    storage:
+      used_tb: 1.3
+      free_gb: 502
+      verified: 2026-04-22
+    notable_subpaths:
+      - path: Photos/Photo Files/2024 Photos
+        used_gb: 546  # includes nested _CCC SafetyNet/ — see plan 0005 retraction
+        live_content_gb: 233
+      - path: Photos/Photo Files/2025 Photos
+        used_gb: 284
+        note: 38 GB ahead of Mac — authority drift, plan 0005 phase 1
+      - path: Photos/Photos Library.photoslibrary
+        used_gb: 201
+        disposition: delete  # plan 0005 phase 2
+      - path: Photos/Remote Year
+        used_gb: 106
+      - path: Remote Year  # root-level dup of above
+        used_gb: 94
+        disposition: verify_and_dedupe
+      - path: Photos/Drone
+        used_gb: 16
+      - path: Music
+        used_gb: 97
+        backup_status: uncertain
+      - path: Projects
+        used_gb: 1
+
+  - id: external-ssd-noisy-cricket
+    display_name: SanDisk 2TB External SSD — Noisy Cricket
+    role: mobile_external_ssd_clone
+    schema_doc: device-schemas/external-ssds.md
+    hardware:
+      capacity_tb: 1.8
+      filesystem: exfat
+      connection: USB-C via iVanky dock (docked) or direct (mobile)
+    storage:
+      role: ccc_clone_of_carbonizer
+      notable_subpaths:
+        - path: _CCC SafetyNet (root)
+          used_gb: 195
+          disposition: audit
+        - path: Media to Sort
+          used_gb: 192
+          disposition: audit  # not present on Carbonizer — plan 0005 phase 1
+    future:
+      phase5_role: candidate_for_physical_ship_to_brothers_ugreen
+
+# ---------------------------------------------------------------------------
+# REPOS — git repos that hold cross-device personal infrastructure
+# (life-atlas itself is implicit; entries here are sibling repos that
+# life-atlas documents and orchestrates.)
+# ---------------------------------------------------------------------------
+repos:
+
+  - id: claude-harness
+    display_name: Claude Code harness
+    url: git@github.com:andrewhml/claude-harness.git
+    visibility: private
+    role: cross_device_claude_config
+    transport: git
+    working_tree_paths:
+      - device: macbook-personal
+        path: ~/.claude
+        mechanism: git_clone
+      - device: macbook-m5
+        path: ~/.claude
+        mechanism: git_clone  # established in plan 0007 Phase 5
+    contents:
+      - CLAUDE.md (user global instructions)
+      - statusline.sh
+      - mcp.json + mcp-wrappers/
+      - commands/, skills/
+      - plugins/installed_plugins.lock.json  # also carries $marketplaces_required block for portable marketplace re-add
+      - settings.json
+      - secrets-manifest.txt (Keychain item names, no values)
+    excluded_per_machine:
+      - sessions/, history.jsonl, projects/, teams/  # session/conversation state (teams/ reclassified during plan-0007 Phase 2a execution)
+      - cache/, paste-cache/, shell-snapshots/, session-env/, telemetry/, statsig/, ide/
+      - settings.local.json  # Anthropic's intended per-machine override seam
+      - plugins/cache/, plugins/install-counts-cache.json, plugins/data/, plugins/marketplaces/
+      - plugins/installed_plugins.json  # contains AM2-local installPath, not portable
+      - plugins/known_marketplaces.json  # installLocation + lastUpdated churn (Phase 2k reclassification)
+      - plugins/blocklist.json  # fetchedAt churns; carried only test data (Phase 2k reclassification)
+      - ~/.claude.json (sibling file, not inside ~/.claude/ — OAuth + per-project trust)
+    secret_storage: macos_keychain  # naming convention: claude-mcp-<server>-<credential>
+    runbook: environment/claude-setup.md
+    seed_script: (none — git init is one-time, documented inline in plan 0007 Phase 2)
+    per_machine_setup_script: environment/setup-claude-secrets.sh
+    related_plans:
+      - plan 0007 (this plan — onboarding + ongoing sync model)
+      - plan 0003 (sister architecture for shell prompt; uses snapshot-not-symlink for the same reasons)
+    related_issues:
+      - "#43 (Claude config migration — closes with plan 0007 Milestone A)"
+      - "#41 (NOTION_TOKEN in legacy ~/Atlas/config/ai/.mcp.json — folded into plan 0007 Phase 2a)"
+
+# ---------------------------------------------------------------------------
+# CLOUD SERVICES
+# ---------------------------------------------------------------------------
+cloud_services:
+
+  - id: google-drive-personal
+    display_name: Google Drive (Personal)
+    role: canonical_cloud_drive_for_atlas
+    capacity_gb: 100
+    used_gb: 26
+    verified: 2026-04-22
+    mounts:
+      - device: macbook-personal
+        path: ~/Atlas
+        mechanism: google_drive_desktop
+      - device: ugreen-peddocks2
+        path: /Volumes/personal_folder/Atlas
+        mechanism: ugreen_cloud_drive
+
+  - id: google-drive-syntheus
+    display_name: Google Drive (Syntheus Consulting)
+    role: consulting_cloud_drive
+    capacity_gb: 60
+    used_gb: 23
+    verified: 2026-04-22
+    scope: out_of_personal_atlas
+
+  - id: icloud
+    display_name: iCloud
+    role: apple_ecosystem_sync
+    capacity_gb: 200
+    used_gb: 200
+    status: FULL  # blocks photo backup and iCloud Drive sync — plan 0002
+    verified: 2026-04-22
+    breakdown:
+      photos_gb: 150.2
+      backup_gb: 38.3
+      messages_gb: 7.3
+      documents_gb: 4.1
+      mail_gb: 0.026
+    phase_plans:
+      phase3: drain_photos_to_immich  # plan 0002 phase 3
+      phase7: non_photo_category_cleanup  # plan 0002 phase 7
+
+# ---------------------------------------------------------------------------
+# NETWORK
+# ---------------------------------------------------------------------------
+network:
+  router:
+    model: TP-Link Deco X55 Pro
+    topology: mesh
+    capability_gbe: 2.5
+  switch:
+    current_status: 15-20_year_old_gigabit
+    replacement_planned: 5-port 2.5 GbE (TP-Link TL-SG105-M2 or similar) — plan 0002 phase 4
+  cabling:
+    in_wall: Cat 5 (early 2000s)
+    realistic_sustained_mbps: 250-500  # plan 0002 phase 4 assumption
+    upgrade_candidate: Cat 6 re-runs post-switch-upgrade
+  internet:
+    isp: Xfinity
+    down_mbps: 755
+    up_mbps: 72
+    public_ip: dynamic
+    ddns: peddocks.ddns.net
+
+# ---------------------------------------------------------------------------
+# BACKUP FLOWS (the graph that actually tells you whether data survives)
+# ---------------------------------------------------------------------------
+backup_flows:
+  - source: google-drive-personal
+    destination: macbook-personal:~/Atlas
+    mechanism: google_drive_desktop
+    direction: bidirectional
+    cadence: real_time
+    status: healthy
+
+  - source: macbook-personal:~/Atlas
+    destination: ugreen-peddocks2:/Volumes/personal_folder/Atlas
+    mechanism: ugreen_cloud_drive
+    direction: bidirectional
+    cadence: real_time
+    status: healthy
+
+  - source: macbook-personal:~/
+    destination: ugreen-peddocks2:TimeMachine
+    mechanism: time_machine
+    direction: one_way
+    cadence: hourly
+    status: healthy
+
+  - source: iphone-16-pro
+    destination: ugreen-peddocks2:immich
+    mechanism: immich_ios_autobackup_over_tailscale
+    direction: one_way
+    cadence: continuous
+    status: active  # plan 0002 phase 1 complete 2026-04-22
+
+  - source: ipad-2024
+    destination: ugreen-peddocks2:immich
+    mechanism: immich_ios_autobackup_over_tailscale
+    direction: one_way
+    cadence: continuous
+    status: deferred  # no iPad-unique content today
+
+  - source: iphone-16-pro + ipad-2024
+    destination: icloud
+    mechanism: apple_photos_native
+    direction: bidirectional
+    cadence: real_time
+    status: blocked  # iCloud full; new captures may not reach iCloud
+
+  - source: macbook-personal:~/Pictures/2025-Photos
+    destination: external-ssd-carbonizer
+    mechanism: carbon_copy_cloner
+    direction: one_way
+    cadence: manual  # plan 0005 phase 3 will automate on volume mount
+    status: functional_but_gappy
+
+  - source: macbook-personal:~/Pictures/2026-Photos
+    destination: external-ssd-carbonizer
+    mechanism: carbon_copy_cloner
+    direction: one_way
+    cadence: manual
+    status: functional_but_gappy
+
+  - source: external-ssd-carbonizer
+    destination: external-ssd-noisy-cricket
+    mechanism: carbon_copy_cloner
+    direction: one_way
+    cadence: manual
+    status: functional_but_gappy
+
+  - source: external-ssd-carbonizer
+    destination: ugreen-peddocks2:Carbonizer_BU
+    mechanism: carbon_copy_cloner
+    direction: one_way
+    cadence: manual
+    last_verified_run: 2026-04-22T23:07:40  # 16 min, exit 0
+    status: functional
+
+  - source: macbook-personal:~/Pictures/YYYY-Photos
+    destination: ugreen-peddocks2:Media/photos
+    mechanism: manual_rsync_at_year_close
+    direction: one_way
+    cadence: annual
+    status: not_consistently_executed  # 2025 not yet archived
+
+  - source: ugreen-peddocks2
+    destination: synology-ds1019
+    mechanism: rsync_or_btrfs_send_receive
+    direction: one_way
+    cadence: nightly_differential + weekly_verify
+    status: planned  # plan 0002 phase 4
+
+  - source: ugreen-peddocks2
+    destination: brother_ugreen_dxp6800_vt
+    mechanism: rsync_over_tailscale
+    direction: one_way
+    cadence: nightly
+    status: planned  # plan 0005 phase 5, seed via physical cricket ship
+
+# ---------------------------------------------------------------------------
+# 3-2-1 POSTURE (current state; target state in plan 0002 target-state table)
+# ---------------------------------------------------------------------------
+threesome_posture:
+  photos_videos:
+    copy1_source: iphone + camera
+    copy2_local: ugreen-peddocks2 (immich) — partial, plan 0002 phase 2 soak in progress
+    copy3_offsite: GAP
+  atlas_docs:
+    copy1_source: macbook-personal:~/Atlas
+    copy2_local: ugreen-peddocks2:/Volumes/personal_folder/Atlas
+    copy3_offsite: google-drive-personal (cloud = offsite, OK)
+  obsidian_vault:
+    copy1_source: macbook-personal (current)
+    copy2_local: planned — livesync couchdb on ugreen, plan 0002 phase 5
+    copy3_offsite: GAP
+  mac_creative_projects:
+    copy1_source: macbook-personal
+    copy2_local: ugreen-peddocks2 via time_machine
+    copy3_offsite: GAP
+  syntheus_consulting:
+    copy1_source: macbook-personal
+    copy2_local: google-drive-syntheus
+    copy3_offsite: google-drive-syntheus (cloud = offsite, OK)
+
+offsite_gap: true
+offsite_plan: plan 0005 phase 5 — brother's UGREEN DXP6800 over Tailscale
+
+# ---------------------------------------------------------------------------
+# VERIFICATION TIMESTAMPS
+# ---------------------------------------------------------------------------
+verification:
+  inventory_last_updated: 2026-04-24
+  ugreen_smart_baseline: 2026-04-22
+  synology_smart_baseline: never  # issue #11
+  immich_postgres_backup: 2026-04-22T23:12:14  # pre-dedup, 550 MB
+  phase2_dedup_complete: 2026-04-23  # 24,522 groups resolved, soak in progress
+  ccc_carbonizer_to_ugreen: 2026-04-22T23:23:51  # 16 min, exit 0
+  carbonizer_bu_content_verified: 2026-04-23

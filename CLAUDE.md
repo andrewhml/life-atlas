@@ -64,6 +64,7 @@ Not everything belongs in a cloud drive. These paths stay on a workstation, mana
 | Path (reference impl.) | Role | Why outside Atlas |
 |---|---|---|
 | `~/workspace/` | Code repositories | Managed by git; `.git/` and large `node_modules/` degrade cloud sync |
+| `~/.claude/` | Claude Code harness (CLAUDE.md, statusline, commands, skills, plugins manifest, MCP wrappers) | Git clone of private repo `andrewhml/claude-harness`; see `environment/claude-setup.md` and `docs/plans/0007-am5-onboarding-and-harness-sync.md`. Cloud-sync daemons explicitly avoided in the critical path of Claude startup |
 | `~/Pictures/` | DSLR / drone originals, editing libraries | Too large, too volatile for cloud sync |
 | Syntheus cloud drive | Consulting work | Separate account, separate ownership |
 
