@@ -100,9 +100,9 @@ If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisi
 
 | App | Verdict | Action |
 |---|---|---|
-| `display_switch` | **Port** | Proceed with Phase 2 (with source-path amendment noted above) |
+| `display_switch` | **Port** | Proceed with Phase 2 (with source-path amendment noted above; betterdisplaycli must be installed on AM5 first — not yet done) |
 | BetterDisplay plist | Skip | Out of scope per plan (cfprefsd-unsafe) |
-| BetterDisplay `.padl` / `.spadl` | **Skip (recommended)** | Mark Phase 3 deferred or abandoned — no demonstrable value |
+| BetterDisplay `.padl` / `.spadl` | **Abandoned** | Phase 3 abandoned — no demonstrable cross-machine value |
 
 ## Approach
 
@@ -125,16 +125,24 @@ If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisi
 
 **Goal:** If AM2 has a working `display_switch` config, make it the cross-device source of truth via Atlas.
 
+**Prerequisites (from Phase 1 audit):**
+- AM2 source path is `~/Library/Preferences/display-switch.ini` (not App Support / `.config`)
+- AM5 must have `betterdisplaycli` installed at `/usr/local/bin/betterdisplaycli` before symlinking the .ini — otherwise the connect/disconnect commands will fail with `Exited with status 1` (same failure mode as AM2's log when the LG monitor is detached). Install via BetterDisplay's "Install CLI tool" menu action on AM5. **Not yet done as of 2026-05-25.**
+
 **Steps:**
 1. Create `~/Atlas/config/apps/display-switch/` with a short `README.md` describing the symlink convention.
-2. On AM2: move the existing config into Atlas; symlink it back to the original path.
-3. On AM5: install `display_switch` via Brewfile if not already done; symlink `~/Atlas/config/apps/display-switch/display-switch.ini` → expected config path.
+2. On AM2: move the existing config from `~/Library/Preferences/display-switch.ini` into Atlas; symlink it back to the original path.
+3. On AM5: install `display_switch` via Brewfile if not already done; install `betterdisplaycli` via BetterDisplay app if not already done; symlink `~/Atlas/config/apps/display-switch/display-switch.ini` → `~/Library/Preferences/display-switch.ini`.
 4. `brew services restart display_switch` on both machines; confirm the service comes up cleanly and the LaunchAgent picks up the new path.
 5. Document the symlink + service-restart step in `environment/apps-manual.md` under the existing `display_switch` mention.
 
 **Exit criteria:** Both machines run `display_switch` reading from Atlas; editing the file on either machine takes effect on the other (after a service restart).
 
 ### Phase 3 — BetterDisplay layout sync (conditional on Phase 1)
+
+**Status: Abandoned (2026-05-25).** Phase 1 audit resolved this: `.padl` / `.spadl` files on AM2 contain only opaque license/activation blobs (no layout/display-arrangement payload visible), and AM5 already has equivalent-size files from its own independent activation. No demonstrable cross-machine value. Leaving both machines machine-local. If concrete evidence later surfaces that AM5 is missing layout state AM2 has, reopen with that evidence.
+
+Original goal (retained for reference):
 
 **Goal:** If AM2's `.padl`/`.spadl` files contain meaningful pinning data not present on AM5, sync them via Atlas. Skip the main plist (cfprefsd-unsafe; menu-density settings are too thin to justify a snapshot script).
 
@@ -163,3 +171,4 @@ If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisi
 
 - 2026-05-25 — Plan drafted (Phases 1–3 outlined; AM2 audit needed before Phase 2/3 can start)
 - 2026-05-25 — Phase 1 audit complete on AM2. Results recorded above. Verdicts: `display_switch` → port (Phase 2 ready with source-path amendment); BetterDisplay plist → skip (per plan); BetterDisplay `.padl`/`.spadl` → skip recommended (no demonstrable cross-machine value).
+- 2026-05-25 — Phase 3 marked **Abandoned** following audit. Phase 2 amended with explicit AM5 prereq: install `betterdisplaycli` (not yet done) before symlinking the .ini.
