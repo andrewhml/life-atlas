@@ -16,7 +16,7 @@
 
 # ── Taps ──────────────────────────────────────────────────────────
 tap "haimgel/tools"              # for display_switch
-tap "waydabber/betterdisplay"    # for BetterDisplay (currently unused tap kept for parity with AM2)
+tap "waydabber/betterdisplay"    # for betterdisplaycli (the BetterDisplay app itself is installed natively)
 
 # ── CLI: shell + prompt ───────────────────────────────────────────
 brew "bash"                      # newer bash than the macOS-bundled one
@@ -66,9 +66,16 @@ brew "bitwarden-cli"             # `bw` — Bitwarden command-line
 # ── CLI: system / maintenance ─────────────────────────────────────
 brew "mole"                      # deep clean + optimize the Mac
 
-# ── Display switching (USB-C KVM via DDC/CI; plan TBD) ────────────
+# ── Display switching (USB-C KVM via DDC/CI; plan 0008) ───────────
 brew "m1ddc"                     # underlying DDC/CI control for Apple Silicon
 brew "haimgel/tools/display_switch"  # watches USB connect/disconnect → switches monitor input
+brew "waydabber/betterdisplay/betterdisplaycli"  # CLI invoked by display_switch's .ini hooks.
+                                  # NOTE: no bottle published — formula compiles from source
+                                  # via Swift, so full Xcode (>=14) is required. The Homebrew
+                                  # cask shim at /opt/homebrew/bin/betterdisplaycli (from the
+                                  # BetterDisplay app cask) is a different artifact — a bare
+                                  # exec to the GUI app binary — and is NOT a substitute for
+                                  # this formula. See plan 0008 + apps-manual.md.
 
 # ── Casks (truly brew-managed) ────────────────────────────────────
 cask "font-meslo-lg-nerd-font"   # required for p10k icons (plan 0003)

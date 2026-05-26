@@ -176,9 +176,12 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 ## System / hardware
 
 ### BetterDisplay
-- **Install:** https://github.com/waydabber/BetterDisplay (also a cask: `waydabber/betterdisplay/betterdisplay`). The `waydabber/betterdisplay` tap is in the Brewfile but the cask isn't declared because AM2 has it natively. On AM5, consider installing the cask version: `brew install --cask waydabber/betterdisplay/betterdisplay`.
+- **Install:** https://github.com/waydabber/BetterDisplay (also a cask: `waydabber/betterdisplay/betterdisplay`). The `waydabber/betterdisplay` tap is in the Brewfile but the cask isn't declared because the **app itself** is installed natively on both machines; the tap is there for the separate `betterdisplaycli` formula (see below).
 - **Purpose:** Display management for external monitors (especially the DDC/CI control loop with `display_switch`)
-- **Setup notes:** Login Item. License if you bought one.
+- **Setup notes:**
+  - Login Item.
+  - License if you bought one.
+  - **The `betterdisplaycli` companion is required if `display_switch` is in use** — it's installed via the Homebrew formula (declared in `environment/Brewfile`), not the GUI. See the `betterdisplaycli` entry below for the Xcode prereq and the cask-shim trap to avoid.
 
 ### Mos (smooth scrolling for non-Apple mice)
 - **Install:** https://mos.caldis.me/ (download .dmg)
@@ -234,9 +237,12 @@ If you want a hand-curated list of extensions per browser (rather than relying o
 
 `pip list --user` on AM2 shows: `brotli`, `cffi`, `charset-normalizer`, `cssselect2`, `et_xmlfile`, `fonttools`, `greenlet`, `lxml`, and more. These are mostly transitive dependencies of other tools (e.g., `fonttools` for font processing, `lxml` for various XML/HTML tasks). On AM5 they'll be installed on-demand the first time a tool needs them; no proactive action required.
 
-### Manual `/usr/local/bin/` entries (not from brew)
+### Brewfile callouts (entries with non-obvious requirements)
 
-- **`betterdisplaycli`** — installed by BetterDisplay.app. Comes with the BetterDisplay install; no separate action.
+- **`betterdisplaycli`** — formula `waydabber/betterdisplay/betterdisplaycli`. Installs the real BetterDisplay CLI binary to `/opt/homebrew/bin/betterdisplaycli`. Three gotchas worth knowing:
+  - **No bottle published** — `brew bundle` will compile from source via Swift. This requires **full Xcode ≥14** (`/Applications/Xcode.app`), not just Command Line Tools. If `brew install` errors with a missing Swift toolchain, install Xcode from the App Store first.
+  - **Do not confuse with the cask shim.** The BetterDisplay app cask (`waydabber/betterdisplay/betterdisplay`) installs a wrapper at the same path `/opt/homebrew/bin/betterdisplaycli` whose entire content is `exec '/Applications/BetterDisplay.app/Contents/MacOS/BetterDisplay' "$@"`. Calling it spawns extra GUI instances instead of acting as a CLI — unsuitable for `display_switch`'s LaunchAgent. If the cask was installed first, `brew uninstall --cask betterdisplay` or accept the formula install overwriting the shim. The empirical proof and the plan around this live in `docs/plans/0008-display-config-sync.md`.
+  - **Alternative: GUI "Install CLI tool" menu action** in BetterDisplay → Settings drops a different ~218 KB launcher at `/usr/local/bin/betterdisplaycli` (`root:wheel`). Works correctly but isn't Brewfile-managed; documented here for historical context — AM2 originally used this path before the 2026-05-26 pivot to the formula.
 
 ---
 
