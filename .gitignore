@@ -18,6 +18,14 @@
 # Session scratch (should not be committed; processed by /session-end)
 docs/session-scratch.md
 
+# planpong review session scratch (review feedback, response JSON, metrics)
+# Lives next to the plan being reviewed; not for commit.
+.planpong/
+
+# Tool secrets — any tools/<tool>/.env may contain credentials.
+# Matches existing precedent for tools/immich-dedup/.env.
+tools/*/.env
+
 # OS temp
 Thumbs.db
 desktop.ini
