@@ -26,7 +26,7 @@ brew "powerlevel10k"             # zsh theme (plan 0003)
 brew "git"                       # newer git than Xcode CLT
 brew "gh"                        # GitHub CLI (issues, PRs, label setup per CLAUDE.md)
 brew "fnm"                       # Fast Node Manager (sources the npm globals declared below)
-brew "mas"                       # Mac App Store CLI (powers the `mas` entries below)
+brew "mas"                       # Mac App Store CLI (`mas list` still useful; see note below re: `mas install`)
 brew "gitleaks"                  # secret scanner (plan 0007 Phase 2f)
 
 # ── CLI: modern unix replacements ─────────────────────────────────
@@ -74,23 +74,16 @@ brew "haimgel/tools/display_switch"  # watches USB connect/disconnect → switch
 cask "font-meslo-lg-nerd-font"   # required for p10k icons (plan 0003)
 cask "ghostty"                   # terminal emulator (plan 0003)
 
-# ── App Store apps (via mas) ──────────────────────────────────────
-# To find an app's id:  mas search "<name>"
-# To install/upgrade:    `brew bundle` (mas honors these entries)
-mas "Blackmagic Disk Speed Test", id: 425264550
-mas "Fantastical",                id: 975937182
-mas "GarageBand",                 id: 682658836
-mas "Harvest",                    id: 506189836
-mas "iMovie",                     id: 408981434
-mas "Keynote",                    id: 409183694
-mas "Meeter",                     id: 1510445899
-mas "NordVPN",                    id: 905953485
-mas "Numbers",                    id: 409203825
-mas "Pages",                      id: 409201541
-mas "Paprika Recipe Manager 3",   id: 1303222628
-mas "Shazam",                     id: 897118787
-mas "Slack",                      id: 803453959
-mas "The Unarchiver",             id: 425424353
+# ── App Store apps ────────────────────────────────────────────────
+# `mas install` is broken on macOS 26.5 (requires sudo + several ADAM IDs return
+# "No apps found"). Mac App Store apps are now installed manually via the App
+# Store app and documented in environment/apps-manual.md. `mas list` (above) is
+# still useful for auditing what's installed.
+#
+# Removed from this Brewfile (2026-05-25 during AM5 onboarding): Blackmagic Disk
+# Speed Test, Fantastical, GarageBand, Harvest, iMovie, Keynote, Meeter,
+# NordVPN, Numbers, Pages, Paprika Recipe Manager 3, Shazam, Slack, The
+# Unarchiver. See apps-manual.md > Mac App Store apps.
 
 # ── NPM globals (via Brewfile's `npm` syntax; requires fnm-managed node) ──
 npm "@google/gemini-cli"         # Gemini CLI

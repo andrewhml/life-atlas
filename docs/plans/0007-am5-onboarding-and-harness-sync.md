@@ -1,6 +1,6 @@
 # Plan 0007 — AM5 onboarding & cross-device harness sync
 
-**Status:** In Progress — AM2 side of Milestone A complete (harness seeded at andrewhml/claude-harness, wrapper installed, Atlas claude-skills deprecated, issue #41 resolved). AM5 onboarding (Phase 5) and Milestone B (Brewfile + app inventory) pending.
+**Status:** Substantially complete — Milestones A + B exit criteria met on AM5 (harness cloned + wrapper installed; 6/6 plugins reinstalled; gh authenticated; Brewfile satisfied after mas regression carve-out → issue #53). Open: 1-week backup-retention window (delete AM2 pre-harness backup + Atlas `.claude-skills-deprecated-20260525T233115Z` around 2026-06-01).
 **planpong:** R4/10 | claude → codex | detail | 2P2 1P3 → 5P2 1P3 → 3P1 1P2 1P3 → 3P3 | Accepted: 14 | +273/-0 lines | 27m 11s | Approved after 4 rounds
 **Issues:** #43 (Claude config migration), #44 (gh auth on M5), #41 (NOTION_TOKEN secret remediation)
 **Created:** 2026-05-25 (re-spec'd same day after research-driven pivot)
@@ -730,6 +730,25 @@ Documentation update: append a paragraph to `environment/claude-setup.md` noting
 Records spec deviations and findings during actual execution.
 
 **2026-05-25 — Phase 1 (`d698f96`):** runbook (`environment/claude-setup.md`), per-machine setup script (`environment/setup-claude-secrets.sh`), `device-schemas/inventory.yaml` (new `repos:` section + `macbook-m5` device stub), `CLAUDE.md` (harness reference). Plan correction baked in: **`teams/` reclassified** from synced allowlist to per-machine exclude after Phase 2a audit confirmed it's per-project Claude Code teams-feature conversation transcripts (1.4 MB across 32 files), same category as `sessions/`.
+
+**2026-05-25 — Phase 3 (`2416c7a`):** Brewfile reconciled from `brew bundle dump` on AM2. Curated 34 entries across taps, CLI formulas, casks, mas entries, and npm globals with section comments.
+
+**2026-05-25 — Phase 4 (`15d3051`):** `environment/apps-manual.md` written covering 8 enumeration surfaces from AM2: AI clients, browsers, Adobe CC, comms, productivity, media, backup/sync, system/hw, editors/terminals, fonts, browser extensions, CLI tools outside brew, Login Items, LaunchAgents, preference panes, system extensions.
+
+**2026-05-25 — Phase 5 (AM5; uncommitted as of this entry, to be committed at session end):**
+
+- Phase 5a prereqs all green on AM5 (Drive desktop running with `~/Atlas/` populated; `gh` authenticated via SSH; brew + SSH to GitHub working; life-atlas repo up to date).
+- Phase 5b **failed first run** with 15 errors split into three classes:
+  1. **mas regression on macOS 26.5.** `mas install` now requires sudo (won't work non-interactively) and several ADAM IDs (Keynote 409183694, Meeter 1510445899, Numbers 409203825, Pages 409201541) return "No apps found in the App Store" despite the apps still existing. Verified by direct `mas install 803453959` (Slack) → identical sudo failure. **Remediation:** removed all 14 `mas` entries from `environment/Brewfile`; added a new "Mac App Store apps" section to `environment/apps-manual.md` documenting them by name + ADAM ID. Drift issue [#53](https://github.com/andrewhml/life-atlas/issues/53) filed; revisit Brewfile when a future Homebrew/mas/macOS release fixes the regression. Kept the `mas` formula in the Brewfile (`mas list` still works for audits).
+  2. **node not on PATH for non-interactive `brew bundle`.** `env: node: No such file or directory` for `@google/gemini-cli` and `vercel` npm globals — fnm initialization (`eval "$(fnm env --use-on-cd)"`) lives in `~/.zshrc` and isn't sourced by Bash. **Remediation:** installed the two npm globals directly with node on PATH via `npm install -g`.
+  3. (None — formulas + casks all installed cleanly.)
+  Post-remediation: `brew bundle check --verbose` → "The Brewfile's dependencies are satisfied" on AM5.
+- Phase 5c–5e effectively pre-completed: `~/.claude/` already a clone of `andrewhml/claude-harness` (on `9f4425a`); `claude` wrapper present at `~/.zshrc:26` (carried over by plan 0003's shell-config sync); no pre-mutation backup needed since no pre-clone state existed.
+- Phase 5f no-op: `secrets-manifest.txt` is comment-only (no current MCP server requires Keychain auth).
+- Phase 5g **prune + archive pass.** User triaged `apps-manual.md` against actual AM5 usage and dropped 17 entries: Copilot, Linear, GoToMeeting, Alfred 5, Sketch, Pencil, Calibre, Logitech G HUB, VIA (native — replaced by usevia.app web app), BeardedSpice, macFUSE, Airfoil + Airfoil Satellite, Sublime Text, iTerm, Warp Terminal, Transmit, GeForce NOW. Dropped entries relocated to a new **"Archived / no longer in use"** section (audit trail; preserves install pointers if needs change). Related housekeeping: removed macFUSE preference-pane row and Logitech G HUB system-extension row from the supporting tables. Active inventory remains the canonical "install on AM5" list.
+- Phase 5h plugin reinstall via `claude plugin` CLI (no need to drop into interactive Claude): user pre-ran most installs; smoke test surfaced two gaps — `frontend-design@claude-plugins-official` was missing on AM5 (lockfile lists it) and the `ouroboros` marketplace registration still lingered after Phase 2k removed the plugin. Installed `frontend-design`; removed `ouroboros` marketplace via `claude plugin marketplace remove ouroboros`. End state: 6/6 plugins per lockfile, 2/2 marketplaces (claude-plugins-official, ui-ux-pro-max-skill).
+- Phase 5i smoke test: harness on `origin/main` (`9f4425a`); `M settings.json` + `?? plugins/known_marketplaces.json` are expected churn (Claude rewrites + gitignored runtime file); `claude` wrapper loaded; `gh auth status` clean (closes #44); `brew bundle check` satisfied; `mcp.json` is `{}` so MCP smoke check vacuously passes; CLAUDE.md loads. Plugin "exercise each" criterion deferred to natural use given the installs reported success cleanly.
+- AM2 pre-harness backup + Atlas `.claude-skills-deprecated-20260525T233115Z` remain retained until ~2026-06-01 per the one-week safety window.
 
 **2026-05-25 — Phase 2a–2j (harness commits `fb8b9ee`, `9d2f17c`, `9f4425a`; life-atlas branch `feat/plan-0007-execution`):**
 
