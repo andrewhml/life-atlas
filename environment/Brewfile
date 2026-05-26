@@ -44,6 +44,15 @@ brew "htop"                      # interactive process viewer
 # ── CLI: language runtimes ────────────────────────────────────────
 brew "python@3.12"               # explicit pin; tools (uvx, etc.) follow
 
+# ── WeasyPrint native libs (for syntheus repo's /contract PDF pipeline) ──
+# Per syntheus CLAUDE.md: WeasyPrint needs Homebrew native libs at
+# /opt/homebrew/lib; venv lives at ~/.syntheus/weasyprint-venv.
+# `pango` is also declared below under media/photo — brew dedupes safely.
+brew "cairo"
+brew "fontconfig"
+brew "glib"
+brew "harfbuzz"
+
 # ── CLI: media / photo ────────────────────────────────────────────
 brew "ffmpeg"                    # audio/video transcoding
 brew "pango"                     # i18n text layout (transitive but pinned)

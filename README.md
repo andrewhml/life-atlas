@@ -121,6 +121,17 @@ The pattern: **Atlas for anything shareable, searchable, and cloud-friendly. Loc
 | Primary workstation → NAS | Time Machine | System backup |
 | Cloud ↔ Mobile | Cloud drive native app | Bidirectional |
 
+### Mirror vs Stream for cloud drives
+
+Cloud drive desktop apps generally offer two modes for how local copies materialize. The convention here:
+
+| Mode | When to use | Why |
+|---|---|---|
+| **Mirror** | The primary cloud account (Atlas) on the primary workstation | Full local copy at a predictable path. Offline-by-default — no per-folder "available offline" toggle needed. The local directory IS the canonical Atlas folder, no symlinks. |
+| **Stream** | Secondary cloud accounts (e.g., consulting / employer drives) | Saves disk; secondary accounts rarely need full local copies. Access via a `~/<AccountName>` symlink to the platform's CloudStorage path so paths stay stable. |
+
+For Google Drive for Desktop specifically: Mirror mode lets you target a literal path (e.g., `~/Atlas`) directly. Stream keeps files under `~/Library/CloudStorage/GoogleDrive-…/My Drive`, which is the right home for secondary accounts. After switching the primary account to Mirror, Drive maintains a backward-compat symlink at the old CloudStorage path so any tool that hardcoded it still works.
+
 ---
 
 ## 🗺️ Repo layout

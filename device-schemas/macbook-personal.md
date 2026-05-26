@@ -77,11 +77,11 @@ workspace/
 | VS Code | Primary editor |
 | Claude Code | AI coding assistant (CLI + IDE integration) |
 | Homebrew | Package manager |
-| Warp Terminal | AI-powered terminal |
-| Zsh + Oh My Zsh | Shell + aliases |
+| Ghostty | Terminal emulator (see `environment/shell-setup.md`) |
+| Zsh + Powerlevel10k | Shell + prompt (snapshots in `~/Atlas/config/shell/`) |
 | Git + GitHub CLI | Version control |
 | Raycast | Productivity + AI |
-| Lightroom / Photoshop | Media post-processing |
+| Adobe Creative Cloud → Lightroom + Illustrator | Media post-processing. CC manager installs via brew; Lr/Ai are installed manually inside CC (not brew-installable). |
 
 ---
 
@@ -110,6 +110,9 @@ workspace/
 
 ## 📝 Notes
 
-- For new-device setup, install the Google Drive desktop app first so `~/Atlas/` populates before running any scripts.
+- For new-device setup, install Google Drive for Desktop first, then:
+  - **Personal account (Atlas):** switch to **Mirror mode** and set the target folder to the literal `~/Atlas`. If a pre-existing `~/Atlas` symlink exists (from a Stream-mode install), remove it first so the Mirror directory can take that path.
+  - **Secondary accounts (e.g., Syntheus):** leave as **Stream mode**. Create a symlink `~/<AccountName>` → `~/Library/CloudStorage/GoogleDrive-<email>/My Drive` so paths stay stable.
+  - When personal Atlas is Mirror-mode at `~/Atlas` directly, the "Available Offline" toggle is irrelevant — Mirror is offline-by-default. See [README sync topology](../README.md#-sync-topology) for the convention.
 - DSLR / drone originals stay in `~/Pictures/` until a year is archived to the NAS Media share.
 - Any configuration meant to travel between devices should live in `~/Atlas/config/`, not in local dotfiles alone.

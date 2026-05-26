@@ -64,7 +64,6 @@ Not everything belongs in a cloud drive. These paths stay on a workstation, mana
 | Path (reference impl.) | Role | Why outside Atlas |
 |---|---|---|
 | `~/workspace/` | Code repositories | Managed by git; `.git/` and large `node_modules/` degrade cloud sync |
-| `~/.claude/` | Claude Code harness (CLAUDE.md, statusline, commands, skills, plugins manifest, MCP wrappers) | Git clone of private repo `andrewhml/claude-harness`; see `environment/claude-setup.md` and `docs/plans/0007-am5-onboarding-and-harness-sync.md`. Cloud-sync daemons explicitly avoided in the critical path of Claude startup |
 | `~/Pictures/` | DSLR / drone originals, editing libraries | Too large, too volatile for cloud sync |
 | Syntheus cloud drive | Consulting work | Separate account, separate ownership |
 
@@ -134,9 +133,15 @@ All scripts in `environment/` must be safe to rerun with the same outcome. Requi
 - Destructive ops (`rm`, `mv`, overwrites) must prompt or be guarded
 - `defaults write` is idempotent — safe to use freely
 
-### Never do
-- Don't edit files inside `~/Atlas/` directly from this repo's scripts. The cloud drive app owns that path; this repo describes the structure.
-- Don't commit content from `~/Atlas/docs/`, `~/Atlas/config/keys/`, or any other personal-data path.
+### Atlas read/write boundaries
+Atlas is the operational config store, not a no-go zone. The boundary is by subtree:
+
+- **`~/Atlas/config/`** — read and write OK (except `keys/`). This is where cross-device config lives and is actively maintained. Scripts may seed, fingerprint, validate, or sync config files here.
+- **`~/Atlas/config/keys/`** — **never** read or write. Secrets only.
+- **`~/Atlas/docs/`** — never read or write. Personal documents (identity, health, finance, legal). Owned by the cloud drive app and the human.
+- **`~/Atlas/archive/`, `~/Atlas/share/`, `~/Atlas/workspace/`** — never read or write without explicit per-task approval. These hold user-owned content.
+- **Never commit** any content from `~/Atlas/docs/`, `~/Atlas/config/keys/`, or any other personal-data path into this repo.
+- **Cloud-sync etiquette:** when writing to `~/Atlas/config/`, write to a scratch path first then `mv` into place (atomic from Drive's perspective). Avoid in-place edits during active sync.
 - Don't assume a `~/Kit/` path exists — "Kit" was an earlier design that Atlas superseded.
 
 ---
@@ -169,11 +174,12 @@ Session-end assumes these labels exist on `andrewhml/life-atlas`. Create with `g
 
 Claude Code's permissions for this repo are configured in `.claude/settings.json`. The allowlist is intentionally narrow:
 
-- **Write access:** only `.claude/*` and `docs/*`
+- **Write access (repo):** only `.claude/*` and `docs/*` by default
+- **Write access (Atlas):** anywhere under `~/Atlas/config/` *except* `keys/` — for seeding, syncing, and maintaining cross-device config files
 - **Bash allowed:** read-only git (`status`, `log`, `branch`, `diff`, `stash`, `show`), plus `gh issue`/`gh label` for session workflow
 - **No write access** to any other repo path without explicit user approval
-- **No access** to files inside `~/Atlas/` (personal data lives there; handled by the cloud drive app)
 - **No access** to `~/Atlas/config/keys/` under any circumstances
+- **No access** to `~/Atlas/docs/`, `~/Atlas/archive/`, `~/Atlas/share/`, `~/Atlas/workspace/` without explicit per-task approval (personal content lives there)
 
 If a task requires broader permissions, ask the user first. Don't silently expand the allowlist.
 
