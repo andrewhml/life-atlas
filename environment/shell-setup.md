@@ -17,22 +17,50 @@ Config lives as snapshots under `~/Atlas/config/`; this doc is the restore direc
 brew install powerlevel10k
 brew install --cask font-meslo-lg-nerd-font
 
-# 2. Restore shell config from Atlas
-cp ~/Atlas/config/shell/zshrc ~/.zshrc
+# 2. Restore shell config from Atlas (three zsh files + p10k theme)
+cp ~/Atlas/config/shell/zprofile ~/.zprofile   # login-shell env (PATH, brew shellenv)
+cp ~/Atlas/config/shell/zshrc    ~/.zshrc      # interactive UX (prompt, completion, aliases)
+cp ~/Atlas/config/shell/zshenv   ~/.zshenv     # every-shell env (LANG, EDITOR)
 cp ~/Atlas/config/shell/p10k.zsh ~/.p10k.zsh
 
-# 3. Restore terminal config from Atlas
+# 3. Restore git + ssh config from Atlas
+#    Keys + known_hosts are NOT snapshotted — generate fresh on each machine.
+cp ~/Atlas/config/shell/gitconfig  ~/.gitconfig
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+cp ~/Atlas/config/shell/ssh-config ~/.ssh/config
+chmod 600 ~/.ssh/config
+
+# 4. Restore terminal config from Atlas
 mkdir -p ~/.config/ghostty
 cp ~/Atlas/config/terminal/ghostty-config ~/.config/ghostty/config
 
-# 4. Reload
+# 5. Reload
 exec zsh
 ```
+
+## Per-machine bootstrap (not snapshotted)
+
+Keys and signing material never leave the host, so each new workstation generates them fresh after the restore above. The gitconfig snapshot assumes the paths below.
+
+```sh
+# SSH key for GitHub + commit signing
+ssh-keygen -t ed25519 -C "<your-email>" -f ~/.ssh/id_ed25519
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+
+# allowed_signers — needed for `git log --show-signature` to verify SSH-signed commits
+echo "<your-email> $(cat ~/.ssh/id_ed25519.pub)" > ~/.ssh/allowed_signers
+
+# Add the .pub key to GitHub (both Authentication AND Signing key types)
+gh ssh-key add ~/.ssh/id_ed25519.pub --type authentication
+gh ssh-key add ~/.ssh/id_ed25519.pub --type signing
+```
+
+If the `~/.gitconfig` snapshot has hardcoded `/Users/<other-user>/...` paths in `signingkey` or `allowedSignersFile`, update them to point at this machine's `$HOME`.
 
 ## Verification
 
 - Open a new Ghostty window (Cmd+Q then relaunch the first time, so font is picked up).
-- Prompt renders in two lines, rainbow segments, with `andrewlee@<host>` visually distinct from the command.
+- Prompt renders in two lines, rainbow segments, with `<user>@<host>` visually distinct from the command.
 - Path truncates as `~/w/p/life-atlas`-style (unique-prefix).
 - `echo $''` shows a GitHub glyph, not a tofu rectangle — confirms the Nerd Font loaded.
 
