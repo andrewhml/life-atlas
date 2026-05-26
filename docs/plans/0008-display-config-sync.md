@@ -123,20 +123,30 @@ If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisi
 
 ### Phase 2 — `display_switch` Atlas sync (conditional on Phase 1)
 
-**Goal:** If AM2 has a working `display_switch` config, make it the cross-device source of truth via Atlas.
+**Goal:** Make AM2's working `display_switch` config the cross-device source of truth via Atlas; bring AM5 from half-install to fully configured.
 
-**Prerequisites (from Phase 1 audit):**
-- AM2 source path is `~/Library/Preferences/display-switch.ini` (not App Support / `.config`)
-- AM5 must have `betterdisplaycli` installed at `/usr/local/bin/betterdisplaycli` before symlinking the .ini — otherwise the connect/disconnect commands will fail with `Exited with status 1` (same failure mode as AM2's log when the LG monitor is detached). Install via BetterDisplay's "Install CLI tool" menu action on AM5. **Not yet done as of 2026-05-25.**
+**State going in (per Phase 1 audit):**
+- **AM2:** configured + running. Source config at `~/Library/Preferences/display-switch.ini` (non-standard location; `display_switch` finds it via its own search algorithm).
+- **AM5:** half-install. `display_switch` binary present (Brewfile-installed at `/opt/homebrew/bin/display_switch`), but LaunchAgent unloaded (`brew services list` reports `none`), no `betterdisplaycli`, no config file.
 
 **Steps:**
-1. Create `~/Atlas/config/apps/display-switch/` with a short `README.md` describing the symlink convention.
-2. On AM2: move the existing config from `~/Library/Preferences/display-switch.ini` into Atlas; symlink it back to the original path.
-3. On AM5: install `display_switch` via Brewfile if not already done; install `betterdisplaycli` via BetterDisplay app if not already done; symlink `~/Atlas/config/apps/display-switch/display-switch.ini` → `~/Library/Preferences/display-switch.ini`.
-4. `brew services restart display_switch` on both machines; confirm the service comes up cleanly and the LaunchAgent picks up the new path.
-5. Document the symlink + service-restart step in `environment/apps-manual.md` under the existing `display_switch` mention.
 
-**Exit criteria:** Both machines run `display_switch` reading from Atlas; editing the file on either machine takes effect on the other (after a service restart).
+1. Create `~/Atlas/config/apps/display-switch/` with a short `README.md` describing the symlink convention and which devices are participating.
+
+2. **On AM2** (already configured — move config into Atlas without dropping the service):
+   1. Move `~/Library/Preferences/display-switch.ini` → `~/Atlas/config/apps/display-switch/display-switch.ini`.
+   2. Symlink it back: `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`.
+   3. `brew services restart display_switch`. Tail `~/Library/Logs/display-switch/display-switch.log` to confirm clean restart and that the service reads through the symlink.
+
+3. **On AM5** (half-install → fully configured). Ordering matters — each step depends on the previous:
+   1. Install `betterdisplaycli`: open BetterDisplay → menu → "Install CLI tool". Verify `/usr/local/bin/betterdisplaycli` exists with `root:wheel` ownership. **Must happen before the LaunchAgent first-starts (sub-step 3 below)**, otherwise `display_switch` will fail with `Exited with status 1` the moment a USB event fires.
+   2. Create the symlink: `ln -s ~/Atlas/config/apps/display-switch/display-switch.ini ~/Library/Preferences/display-switch.ini`. (Atlas-side file already exists from step 2 above.)
+   3. First-start the LaunchAgent: `brew services start display_switch` (first start, not restart). Verify `brew services list` shows `started` and a process is running.
+   4. Next USB connect/disconnect of the watched device (`05e3:0610`), inspect `~/Library/Logs/display-switch/display-switch.log` and confirm `betterdisplaycli` runs cleanly (no `Exited with status 1`).
+
+4. Document the symlink convention + AM5-first-time setup ordering in `environment/apps-manual.md` under the existing `display_switch` mention.
+
+**Exit criteria:** Both machines run `display_switch` reading from Atlas; editing the file on either machine takes effect on the other (after a service restart on the editing-machine side).
 
 ### Phase 3 — BetterDisplay layout sync (conditional on Phase 1)
 
@@ -172,3 +182,4 @@ Original goal (retained for reference):
 - 2026-05-25 — Plan drafted (Phases 1–3 outlined; AM2 audit needed before Phase 2/3 can start)
 - 2026-05-25 — Phase 1 audit complete on AM2. Results recorded above. Verdicts: `display_switch` → port (Phase 2 ready with source-path amendment); BetterDisplay plist → skip (per plan); BetterDisplay `.padl`/`.spadl` → skip recommended (no demonstrable cross-machine value).
 - 2026-05-25 — Phase 3 marked **Abandoned** following audit. Phase 2 amended with explicit AM5 prereq: install `betterdisplaycli` (not yet done) before symlinking the .ini.
+- 2026-05-25 — Phase 2 rewritten with per-machine step blocks. AM2 (move config into Atlas, symlink back, restart service) + AM5 (half-install → install betterdisplaycli → symlink → first-start LaunchAgent → verify on next USB event). Ordering preserved so AM5 first-time setup can't hit `Exited with status 1` from missing `betterdisplaycli`.
