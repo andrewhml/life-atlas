@@ -123,6 +123,8 @@ If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisi
 
 ### Phase 2 — `display_switch` Atlas sync (conditional on Phase 1)
 
+**Progress:** Step 1 complete · AM2 block (2.1–2.3) complete · AM5 block (3.1–3.4) pending · Documentation (step 4) pending after AM5.
+
 **Goal:** Make AM2's working `display_switch` config the cross-device source of truth via Atlas; bring AM5 from half-install to fully configured.
 
 **State going in (per Phase 1 audit):**
@@ -183,3 +185,4 @@ Original goal (retained for reference):
 - 2026-05-25 — Phase 1 audit complete on AM2. Results recorded above. Verdicts: `display_switch` → port (Phase 2 ready with source-path amendment); BetterDisplay plist → skip (per plan); BetterDisplay `.padl`/`.spadl` → skip recommended (no demonstrable cross-machine value).
 - 2026-05-25 — Phase 3 marked **Abandoned** following audit. Phase 2 amended with explicit AM5 prereq: install `betterdisplaycli` (not yet done) before symlinking the .ini.
 - 2026-05-25 — Phase 2 rewritten with per-machine step blocks. AM2 (move config into Atlas, symlink back, restart service) + AM5 (half-install → install betterdisplaycli → symlink → first-start LaunchAgent → verify on next USB event). Ordering preserved so AM5 first-time setup can't hit `Exited with status 1` from missing `betterdisplaycli`.
+- 2026-05-25 — **Phase 2 Step 1 + AM2 block complete.** Created `~/Atlas/config/apps/display-switch/` with README. Moved `display-switch.ini` into Atlas via scratch+mv (cloud-sync etiquette), diff-verified, removed original, symlinked back to `~/Library/Preferences/display-switch.ini`. `brew services restart display_switch` clean; new pid 15713; log confirms `Configuration loaded ("/Users/andrewlee/Library/Preferences/display-switch.ini")` reads through the symlink and parses all 3 keys. AM5 block remains; documentation step waits for AM5 completion.
