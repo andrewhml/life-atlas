@@ -38,13 +38,71 @@ Reconnaissance on AM5 (this session, host=`AM5`):
 - BetterDisplay installed; `~/Library/Preferences/pro.betterdisplay.BetterDisplay.plist` exists with 166 entries — mostly auto-discovered display state (Display:2, Display:3 EDID-derived properties), Paddle license activation hash, and a small set of user-configured menu density flags
 - BetterDisplay layout files: `~/Library/Application Support/BetterDisplay/762421.padl` (1.7 KB, binary plist) and `762421.spadl` (1.0 KB, binary plist containing `license_data`)
 
-AM2 state: **unknown from this session.** The audit phase resolves this.
+AM2 state: see [Audit results](#audit-results) below.
 
 What we already know about the file-format constraints:
 
 - `display_switch` config is a plain INI — safe to relocate + symlink
 - BetterDisplay `.padl` / `.spadl` are regular files the app reads/writes directly (not cfprefsd-managed) — safe to symlink
 - The main BetterDisplay `.plist` lives in the macOS Preferences store managed by `cfprefsd`, which atomic-renames on write and will break a symlink. If we want it portable, the right pattern is periodic `defaults export` snapshots, not a symlink.
+
+## Audit results
+
+Audit run on AM2 on 2026-05-25. Phase 1 step 1 inspections below.
+
+### `display_switch`
+
+- Binary at `/opt/homebrew/bin/display_switch` (Brewfile-installed)
+- LaunchAgent at `~/Library/LaunchAgents/homebrew.mxcl.display_switch.plist`; `brew services list` reports `started`; process running (pid 1468 at audit time)
+- LaunchAgent plist hard-codes only the binary path (`/opt/homebrew/opt/display_switch/bin/display_switch`); no `-c` flag, no env vars — the binary discovers its config file via its own search algorithm
+- **Config found at non-standard path**: `~/Library/Preferences/display-switch.ini` (NOT at `~/Library/Application Support/display-switch/` or `~/.config/display-switch/` as Phase 1 expected). 3 lines:
+
+  ```ini
+  usb_device = "05e3:0610"
+  on_usb_connect_execute = "/usr/local/bin/betterdisplaycli set -namelike=LG -ddcAlt -vcp=inputSelectAlt -value=209"
+  on_usb_disconnect_execute = "/usr/local/bin/betterdisplaycli set -namelike=LG -ddcAlt -vcp=inputSelectAlt -value=208"
+  ```
+
+- Log at `~/Library/Logs/display-switch/display-switch.log` confirms the service is actively reacting to USB events on the laptop alone (USB device disconnected → "Did not detect any DDC-compatible displays" — expected when the external setup is detached)
+- `betterdisplaycli` lives at `/usr/local/bin/betterdisplaycli` (owner `root:wheel`, ~218 KB) — installed by the BetterDisplay app's "Install CLI tool" action, **not** by Homebrew. The Apple Silicon Homebrew prefix `/opt/homebrew/bin/` has no symlink for it
+
+**Verdict: PORT.** Config is small, intentional, and used. Atlas-backed symlink is straightforward provided Phase 2 confirms `/usr/local/bin/betterdisplaycli` exists on AM5 (likely fine since BetterDisplay is installed on both — but verify before the move).
+
+**Phase 2 amendments needed:**
+- Source path is `~/Library/Preferences/display-switch.ini`, not the App Support / `.config` paths the original draft mentioned
+- Phase 2 step 4 should additionally verify `betterdisplaycli` path is identical on AM5 before/after move
+
+### BetterDisplay plist
+
+- `~/Library/Preferences/pro.betterdisplay.BetterDisplay.plist`: 61,428 bytes; `defaults read` produces 805 lines (vs AM5's ~166)
+- 11 tagged displays in `displayTagIDs = "[2,3,4,28,31,32,41,45,52,53,57]"` (vs AM5's 2) — AM2 has accumulated per-display state for many more monitors over time
+- License-ID `762421` matches AM5 (Paddle ID is per-account, not per-machine). Activation hash: `Paddle-BetterDisplay-762421-SD = 0c07c1953422a66d40c9ddb1376d08bf3e33846b61b7476eb35ac74c315560c3`
+- Real user-configured settings present (filtered for non-auto-discovered keys):
+  - **Custom resolution override for display `v9747m8227`**: `manualResolutionList = "[[1920,550,3]]"`, `overrideDefaultResolution = 1`, `overridesEnabled = 1`, default resolution 3840×1100@60Hz. This is meaningful config, not auto-discovery.
+  - Customized menu density across ~30 `menuLevel*` keys (mix of `more`/`less`/`hide`)
+  - `showAdvancedDisplaysSettings = 1`, `showAdvancedMenuAppearance = 1`, `showAdvancedVirtualScreensSettings = 1`
+
+**Verdict: SKIP per plan** (cfprefsd-unsafe — plan already excluded). Worth flagging: the resolution override above is the only meaningful piece of cross-machine-portable config in the plist; it will not propagate to AM5 unless a future plan revisits the cfprefsd-export approach. Not in scope for 0008.
+
+### BetterDisplay layout files (`.padl` / `.spadl`)
+
+- `~/Library/Application Support/BetterDisplay/762421.padl` (1,673 bytes) and `762421.spadl` (1,017 bytes)
+- Both are NSKeyedArchiver-wrapped binary plists (`Apple binary property list` per `file(1)`)
+- `.padl` schema: `file_version=1`, `sdk_version=4`, `file_platform=mac`, `product_data` (1,280-byte opaque blob)
+- `.spadl` schema: `file_version=1`, `sdk_version=4`, `file_platform=mac`, `license_data` (624-byte opaque blob)
+- Same license-ID `762421` as AM5; AM5's files are similar size (~1,700 / ~1,000 bytes per the original recon) — both machines appear to already have functional license activation independently
+
+**Verdict: SKIP recommended.** Contents are opaque license/activation blobs (no layout/display-arrangement payload visible in the unwrapped structure). AM5 already has equivalent-size files; syncing would gain nothing demonstrable and risks license-activation flakiness. The plan's Phase 3 open question ("does the user actively rely on BetterDisplay pinning today") resolves to "no observable cross-machine value worth porting."
+
+If the user later finds AM5 needs a layout state AM2 has and AM5 doesn't, revisit with concrete evidence — but absent that, leave both machines machine-local.
+
+### Summary
+
+| App | Verdict | Action |
+|---|---|---|
+| `display_switch` | **Port** | Proceed with Phase 2 (with source-path amendment noted above) |
+| BetterDisplay plist | Skip | Out of scope per plan (cfprefsd-unsafe) |
+| BetterDisplay `.padl` / `.spadl` | **Skip (recommended)** | Mark Phase 3 deferred or abandoned — no demonstrable value |
 
 ## Approach
 
@@ -104,3 +162,4 @@ What we already know about the file-format constraints:
 ## Status log
 
 - 2026-05-25 — Plan drafted (Phases 1–3 outlined; AM2 audit needed before Phase 2/3 can start)
+- 2026-05-25 — Phase 1 audit complete on AM2. Results recorded above. Verdicts: `display_switch` → port (Phase 2 ready with source-path amendment); BetterDisplay plist → skip (per plan); BetterDisplay `.padl`/`.spadl` → skip recommended (no demonstrable cross-machine value).
