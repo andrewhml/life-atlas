@@ -407,7 +407,7 @@ repos:
       - statusline.sh
       - mcp.json + mcp-wrappers/
       - commands/, skills/
-      - plugins/installed_plugins.lock.json + known_marketplaces.json + blocklist.json
+      - plugins/installed_plugins.lock.json  # also carries $marketplaces_required block for portable marketplace re-add
       - settings.json
       - secrets-manifest.txt (Keychain item names, no values)
     excluded_per_machine:
@@ -416,6 +416,8 @@ repos:
       - settings.local.json  # Anthropic's intended per-machine override seam
       - plugins/cache/, plugins/install-counts-cache.json, plugins/data/, plugins/marketplaces/
       - plugins/installed_plugins.json  # contains AM2-local installPath, not portable
+      - plugins/known_marketplaces.json  # installLocation + lastUpdated churn (Phase 2k reclassification)
+      - plugins/blocklist.json  # fetchedAt churns; carried only test data (Phase 2k reclassification)
       - ~/.claude.json (sibling file, not inside ~/.claude/ — OAuth + per-project trust)
     secret_storage: macos_keychain  # naming convention: claude-mcp-<server>-<credential>
     runbook: environment/claude-setup.md

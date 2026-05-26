@@ -1,6 +1,6 @@
 # Plan 0007 — AM5 onboarding & cross-device harness sync
 
-**Status:** Approved
+**Status:** In Progress — AM2 side of Milestone A complete (harness seeded at andrewhml/claude-harness, wrapper installed, Atlas claude-skills deprecated, issue #41 resolved). AM5 onboarding (Phase 5) and Milestone B (Brewfile + app inventory) pending.
 **planpong:** R4/10 | claude → codex | detail | 2P2 1P3 → 5P2 1P3 → 3P1 1P2 1P3 → 3P3 | Accepted: 14 | +273/-0 lines | 27m 11s | Approved after 4 rounds
 **Issues:** #43 (Claude config migration), #44 (gh auth on M5), #41 (NOTION_TOKEN secret remediation)
 **Created:** 2026-05-25 (re-spec'd same day after research-driven pivot)
@@ -73,9 +73,7 @@ Establish a sustainable cross-device model for the harness: AM2 is the current s
 ├── commands/                       # slash commands
 ├── skills/                         # user skills (moved from Atlas in Phase 2c)
 ├── plugins/
-│   ├── installed_plugins.lock.json # SOLE portable source of truth: per-plugin source/version/auth/install-cmd (see Plugin reinstall manifest)
-│   ├── known_marketplaces.json
-│   └── blocklist.json
+│   └── installed_plugins.lock.json # SOLE portable source of truth: per-plugin source/version/auth/install-cmd (see Plugin reinstall manifest)
 ├── settings.json                   # user-level settings
 ├── secrets-manifest.txt            # list of required Keychain item names (no values)
 ├── .gitignore                      # explicit allowlist (see below)
@@ -100,8 +98,6 @@ Establish a sustainable cross-device model for the harness: AM2 is the current s
 !skills/**
 !plugins/
 !plugins/installed_plugins.lock.json
-!plugins/known_marketplaces.json
-!plugins/blocklist.json
 !settings.json
 !secrets-manifest.txt
 !.gitignore
@@ -123,6 +119,14 @@ plugins/installed_plugins.json
 # (e.g. teams/<project>/inboxes/<role>.json). Runtime state, same category as
 # sessions/ and projects/. Reclassified during plan-0007 Phase 2a execution.
 teams/
+
+# known_marketplaces.json + blocklist.json mix user intent with machine-local
+# cache (installLocation, lastUpdated, fetchedAt) that churns every Claude
+# session. Portable user intent for marketplaces lives in the lockfile's
+# $marketplaces_required block (with marketplace_add_cmd per entry).
+# Reclassified during plan-0007 Phase 2k execution.
+plugins/known_marketplaces.json
+plugins/blocklist.json
 ```
 
 Rationale for explicit exclusions (despite being part of `~/.claude/`):
@@ -137,6 +141,8 @@ Rationale for explicit exclusions (despite being part of `~/.claude/`):
 | `plugins/data/` | Plugin-managed local data; per-machine |
 | `plugins/marketplaces/` | Binary plugin payloads; reinstall per-machine via the lockfile |
 | `plugins/installed_plugins.json` | Contains AM2-local installPath under `~/.claude/plugins/cache`, machine-local project paths, install timestamps. NOT portable. Sanitized equivalent is `installed_plugins.lock.json` |
+| `plugins/known_marketplaces.json` | Contains `installLocation` (machine-local path) and `lastUpdated` field that bumps on every Claude plugin operation. Portable equivalent is the lockfile's `$marketplaces_required` block with `marketplace_add_cmd` per entry. Reclassified Phase 2k. |
+| `plugins/blocklist.json` | Contains `fetchedAt` that churns; original content was only test entries. If a real blocklist is needed in the future, re-curate per machine. Reclassified Phase 2k. |
 | `~/.claude.json` (sibling to `~/.claude/`, not inside it) | OAuth session + per-project trust grants; **never sync** |
 
 ### Conflict handling
@@ -408,36 +414,21 @@ echo "Restore (if needed): rm -rf ~/.claude && mv ~/.claude-pre-harness-backup-$
 
 Hard requirement before Phase 2c. If `cp` fails (disk full, permissions, etc.), stop and investigate.
 
-#### 2c. Prove the MCP secret-reference pattern on AM2 (gate)
+#### 2c. MCP secret-reference status + legacy `.mcp.json` cleanup (#41 close)
 
-Before seeding the repo, prove the chosen Keychain-via-wrapper pattern (see Sync model > Secret provisioning model) works end-to-end against a real MCP server. Notion is the natural pilot since #41 already concerns its token.
+**Execution-time finding:** the user's live `~/.claude/mcp.json` configures only `ouroboros` (no auth required). The legacy `~/Atlas/config/ai/.mcp.json` held a real `NOTION_TOKEN` but Notion MCP is no longer in active use. So there is currently no MCP server that requires a secret, and the originally-planned Phase 2c "prove the Keychain-via-wrapper pattern with Notion" gate becomes vacuous.
 
-```sh
-# 1. Store the secret in Keychain (one-time per machine)
-security add-generic-password -s "claude-mcp-notion-token" -a "$USER" -w "<the-notion-integration-token>" -U
+Simplified Phase 2c:
 
-# 2. Author the wrapper
-mkdir -p ~/.claude/mcp-wrappers
-cat > ~/.claude/mcp-wrappers/notion.sh <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-export NOTION_TOKEN="$(security find-generic-password -s claude-mcp-notion-token -a "$USER" -w)"
-exec npx -y @notionhq/notion-mcp-server "$@"
-EOF
-chmod +x ~/.claude/mcp-wrappers/notion.sh
+1. Delete the legacy file (closes #41):
+   ```sh
+   rm ~/Atlas/config/ai/.mcp.json
+   ```
+2. Skip the Keychain + wrapper setup for now. No current MCP server needs it.
+3. Initialize `secrets-manifest.txt` as comment-only (template for future entries). The wrapper pattern stays documented in `environment/claude-setup.md > Secret provisioning model` for the first time a future MCP server requires authentication.
+4. `mcp-wrappers/` directory is NOT created in the initial seed (git can't track empty dirs; recreate when the first wrapper is authored).
 
-# 3. Point mcp.json at the wrapper (rewrite the notion entry)
-# 4. Restart Claude Code and verify the notion MCP server connects + completes an authenticated call
-```
-
-**Gate:** if the authenticated call fails, the secret-reference model is wrong. Stop, revise the plan (or pick a different pattern), do NOT proceed to skills unwind. If it succeeds, repeat the wrapper authoring for every other MCP server in `mcp.json` (each becomes a one-line wrapper) before continuing.
-
-Add each Keychain item name to `~/.claude/secrets-manifest.txt`:
-
-```
-claude-mcp-notion-token
-claude-mcp-<next-server>-<credential>
-```
+**If a future MCP server adds an auth requirement,** revive the original 2c gate at that time: store the secret in Keychain, author the wrapper under `mcp-wrappers/`, point `mcp.json` at it, verify with an authenticated call. The infrastructure (allowlist accepts `mcp-wrappers/`, `setup-claude-secrets.sh` reads the manifest, runbook documents the pattern) is in place.
 
 #### 2d. Unwind existing skills symlinks
 
@@ -734,6 +725,25 @@ Documentation update: append a paragraph to `environment/claude-setup.md` noting
 
 ---
 
+## Execution log
+
+Records spec deviations and findings during actual execution.
+
+**2026-05-25 — Phase 1 (`d698f96`):** runbook (`environment/claude-setup.md`), per-machine setup script (`environment/setup-claude-secrets.sh`), `device-schemas/inventory.yaml` (new `repos:` section + `macbook-m5` device stub), `CLAUDE.md` (harness reference). Plan correction baked in: **`teams/` reclassified** from synced allowlist to per-machine exclude after Phase 2a audit confirmed it's per-project Claude Code teams-feature conversation transcripts (1.4 MB across 32 files), same category as `sessions/`.
+
+**2026-05-25 — Phase 2a–2j (harness commits `fb8b9ee`, `9d2f17c`, `9f4425a`; life-atlas branch `feat/plan-0007-execution`):**
+
+- Phase 2a Surface 1: about-to-be-committed files clean (rg/manual review found only false positives — `Read(**/secrets/**)` permission pattern in `settings.json`, `total_input_tokens` field name in `statusline.sh`).
+- Phase 2a Surface 2: **issue #41 confirmed and resolved.** Legacy `~/Atlas/config/ai/.mcp.json` (210 B, 2026-02-03) contained a real `NOTION_TOKEN` (`ntn_...`). File deleted.
+- Phase 2c: **MCP-gate simplified.** User confirmed Notion MCP is no longer in active use; live `~/.claude/mcp.json` configured only `ouroboros` (no auth required). Original 2c gate (prove the Keychain wrapper pattern via Notion) became vacuous. The wrapper-pattern infrastructure (`mcp-wrappers/` accepted by allowlist, `setup-claude-secrets.sh` reads manifest, runbook documents the pattern) stays in place for the next MCP server that needs auth. `secrets-manifest.txt` shipped as comment-only template.
+- Phase 2f: `gitleaks detect --no-git` returned 215 hits in `telemetry/` — all in gitignored runtime state, none in the staged set. `gitleaks protect --staged` (the authoritative gate) was clean.
+- Phase 2g: GitHub remote already contained a 75 B auto-README. Deleted via `gh api -X DELETE`, then `git pull --rebase --allow-unrelated-histories` rebased the seed on top, then plain push (no force needed).
+- Phase 2h: `claude` shell wrapper appended to `~/.zshrc`; plan 0003's `sync-shell-config.sh` re-run to snapshot into Atlas so AM5 picks it up via plan 0003 restore.
+- Phase 2j: `~/Atlas/config/ai/claude-skills/` renamed to `.claude-skills-deprecated-20260525T233115Z`; scheduled for deletion after AM5 Phase 5 + 1 week.
+- Phase 2k smoke test: passed for statusline, skills, commands, CLAUDE.md, plugins, wrapper. Surfaced two follow-on cleanups (committed in harness `9d2f17c` and `9f4425a`):
+  - **`ouroboros` plugin removed.** Was project-scoped to `~/workspace/personal/kitted`, no longer in active use. Dropped from `mcp.json` (now `{"mcpServers": {}}`), from `installed_plugins.lock.json`, and from `$marketplaces_required`. User to run `/plugin uninstall ouroboros@ouroboros` on AM2 out of band.
+  - **`known_marketplaces.json` + `blocklist.json` reclassified to per-machine.** Both files mix user intent with cache fields that churn every Claude session (`lastUpdated`, `fetchedAt`, machine-local `installLocation`); leaving them tracked would cause perpetual working-tree dirt + cross-machine rebase noise. Marketplaces' portable intent already lives in the lockfile's `$marketplaces_required` block.
+
 ## Risks / open questions
 
 - **Network at `claude` invocation** — wrapper runs `git pull` on every launch. If GitHub is unreachable, the pull fails silently and Claude falls through to the local working tree. Acceptable: Claude still starts; user sees stale content. Mitigation: documented `command claude` bypass; consider adding a hard `git fetch --dry-run` timeout if the wrapper-pull ever becomes a noticeable hang.
@@ -765,9 +775,9 @@ Secret hygiene:
 - [ ] Phase 2a three-layer audit (rg keyword + gitleaks + manual review) clean on both surfaces; or every hit has a documented disposition
 - [ ] `gitleaks` installed on AM2; both `detect --no-git` and `protect --staged` runs are clean against the harness working tree before commit
 - [ ] Issue #41 closed: legacy `~/Atlas/config/ai/.mcp.json` is secret-free or absent (not on the basis of the new harness `mcp.json` alone)
-- [ ] Phase 2c gate passed: chosen Keychain-via-wrapper pattern proven end-to-end against the Notion MCP server on AM2 (authenticated call succeeds)
-- [ ] All MCP-server credentials live in Keychain under `claude-mcp-*` naming convention; every server in `mcp.json` invokes a wrapper under `mcp-wrappers/` rather than referencing secrets inline
-- [ ] `secrets-manifest.txt` committed to the harness repo, listing every required Keychain item name
+- [ ] Phase 2c executed in simplified form: legacy `~/Atlas/config/ai/.mcp.json` deleted; no current MCP server requires a secret (live `mcp.json` is just `ouroboros`); Notion MCP is not in active use. Wrapper-pattern infrastructure remains documented and ready for the next time an MCP server needs auth.
+- [ ] `secrets-manifest.txt` committed to the harness repo (comment-only template for now)
+- [ ] (Future) Any MCP-server credential added subsequently lives in Keychain under `claude-mcp-*` naming convention; the server's entry in `mcp.json` invokes a wrapper under `mcp-wrappers/` rather than referencing secrets inline
 
 AM2 state:
 

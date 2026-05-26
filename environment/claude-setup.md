@@ -195,9 +195,7 @@ The `andrewhml/claude-harness` repo:
 ├── commands/                       # slash commands
 ├── skills/                         # user skills
 ├── plugins/
-│   ├── installed_plugins.lock.json # SOLE portable source: per-plugin source/version/auth/install_cmd
-│   ├── known_marketplaces.json
-│   └── blocklist.json
+│   └── installed_plugins.lock.json # SOLE portable source: per-plugin source/version/auth/install_cmd + $marketplaces_required block
 ├── settings.json                   # user-level settings
 ├── secrets-manifest.txt            # required Keychain item names (no values)
 ├── .gitignore                      # explicit allowlist (see below)
@@ -222,8 +220,6 @@ The `andrewhml/claude-harness` repo:
 !skills/**
 !plugins/
 !plugins/installed_plugins.lock.json
-!plugins/known_marketplaces.json
-!plugins/blocklist.json
 !settings.json
 !secrets-manifest.txt
 !.gitignore
@@ -243,6 +239,12 @@ plugins/installed_plugins.json
 # teams/ holds per-project Claude Code "teams" feature conversation transcripts.
 # Runtime state, same category as sessions/ and projects/.
 teams/
+
+# known_marketplaces.json + blocklist.json mix user intent with cache fields
+# that churn every Claude session. Portable marketplace intent lives in
+# installed_plugins.lock.json > $marketplaces_required.
+plugins/known_marketplaces.json
+plugins/blocklist.json
 ```
 
 ---
