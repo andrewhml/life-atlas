@@ -124,16 +124,15 @@ For Google Drive for Desktop specifically: Mirror mode lets you target a literal
 
 ```
 life-atlas/
-├── device-schemas/       # Folder structure per device
-│   ├── macbook-personal.md
-│   ├── macbook-work.md
-│   ├── nas-structure.md
-│   ├── pc-personal.md
-│   ├── ipad.md
-│   └── iphone.md
+├── device-schemas/       # Inventory schema for personal devices
+│   ├── README.md
+│   └── inventory.template.yaml   # Single yaml schema; filled-in copy
+│                                 # lives at ~/Atlas/docs/gear/inventory.yaml
 ├── folder-schemas/       # Conceptual schemas per top-level folder
 ├── environment/          # Setup scripts, Brewfile docs
+├── scripts/              # Personal-data lint + git-hook installer
 ├── bookmarks/            # Bookmark strategy
+├── docs/plans/           # Meta-plans about this public guide
 ├── CLAUDE.md             # Project guide for Claude Code
 └── README.md             # This file
 ```
