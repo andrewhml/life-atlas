@@ -50,8 +50,8 @@ mkdir -p "$ATLAS_EXAMPLE/Config/Templates"/{Documents,Code,Presentations,Forms}
 mkdir -p "$ATLAS_EXAMPLE/Archive"
 
 echo "📁 Creating Workspace-Example/ structure..."
-mkdir -p "$WORKSPACE_EXAMPLE"/{Syntheus,Personal,Work,Academic,Environments}
-mkdir -p "$WORKSPACE_EXAMPLE/Syntheus"/{Active-Projects,Proposals,Resources,Admin,Internal}
+mkdir -p "$WORKSPACE_EXAMPLE"/{Consulting,Personal,Work,Academic,Environments}
+mkdir -p "$WORKSPACE_EXAMPLE/Consulting"/{Active-Projects,Proposals,Resources,Admin,Internal}
 mkdir -p "$WORKSPACE_EXAMPLE/Work"/{Active-Projects,Development,Documentation,Archive}
 mkdir -p "$WORKSPACE_EXAMPLE/Academic"/{High-School,College,Graduate-School,Continuing-Education}
 mkdir -p "$WORKSPACE_EXAMPLE/Environments"/{Node-Projects,Python-Envs,Docker,Databases}
@@ -172,7 +172,7 @@ This is an EXAMPLE of local project organization that stays on individual device
 
 ## Example Structure
 
-- **Syntheus/**: Consulting company project organization
+- **Consulting/**: Consulting company project organization
 - **Personal/**: Personal projects (kept flat initially)
 - **Work/**: Corporate work organization
 - **Academic/**: Educational work by institution
@@ -284,7 +284,7 @@ alias photos="cd ~/Media/Photos"  # Change to your actual media folder
 alias config="cd ~/System"  # Change to your actual system configs
 
 # Example project shortcuts
-alias syntheus="cd ~/Workspace/Syntheus"  # Adapt to your structure
+alias consulting="cd ~/Workspace/Consulting"  # Adapt to your structure
 alias personal="cd ~/Workspace/Personal"  # Adapt to your structure
 
 # Example utilities

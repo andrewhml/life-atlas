@@ -1,8 +1,8 @@
 # Native app inventory (non-brew)
 
-Apps and parity-required items on AM2 that the Brewfile does NOT install. Walk this top-to-bottom during AM5 onboarding (plan 0007 Phase 5f).
+Apps and parity-required items on a personal Mac that the Brewfile does NOT install. Walk this top-to-bottom during new-machine onboarding.
 
-**Inventory captured 2026-05-25 (host=AM2, M2 Pro) during plan 0007 Phase 4** from 8 enumeration surfaces: `/Applications`, `mas list` (already in Brewfile), Login Items, LaunchAgents, fonts, browser extensions, preference panes / system extensions, CLI tools outside brew.
+**Inventory captured 2026-05-25** from 8 enumeration surfaces on the source workstation: `/Applications`, `mas list` (already in Brewfile), Login Items, LaunchAgents, fonts, browser extensions, preference panes / system extensions, CLI tools outside brew.
 
 Anything in [`environment/Brewfile`](Brewfile) is **not** repeated here. That includes: `font-meslo-lg-nerd-font`, `ghostty`, `display_switch` + `m1ddc`, all CLI formulas, and the 4 npm globals (`@google/gemini-cli`, `@openai/codex`, `planpong`, `vercel`).
 
@@ -34,7 +34,7 @@ Mac App Store apps live in the "Mac App Store apps" section below — they used 
 ### Brave Browser
 - **Install:** https://brave.com/download/ — `.dmg`, drag to Applications
 - **Purpose:** Primary browser
-- **Setup notes:** Sign in to Brave Sync to recover bookmarks, settings, and extensions (10 extensions on AM2; sync handles them automatically).
+- **Setup notes:** Sign in to Brave Sync to recover bookmarks, settings, and extensions; sync handles them automatically.
 
 ### Firefox
 - **Install:** https://www.mozilla.org/firefox/new/
@@ -44,7 +44,7 @@ Mac App Store apps live in the "Mac App Store apps" section below — they used 
 ### Google Chrome
 - **Install:** https://www.google.com/chrome/
 - **Purpose:** Compatibility / Google Workspace
-- **Setup notes:** Sign in to Google account. 12 extensions on AM2; sync via Chrome account.
+- **Setup notes:** Sign in to Google account; extensions sync via Chrome account.
 
 ---
 
@@ -59,7 +59,7 @@ Mac App Store apps live in the "Mac App Store apps" section below — they used 
 |---|---|
 | Acrobat DC | PDF |
 | Illustrator 2026 | Vector |
-| Lightroom CC | Photo (NOT Lightroom Classic — see plan 0005 for the photo workflow) |
+| Lightroom CC | Photo (NOT Lightroom Classic — see your own photo-workflow plan) |
 | Media Encoder 2026 | Required by Premiere export |
 | Photoshop 2026 | Raster |
 | Premiere Pro 2026 | Video |
@@ -148,8 +148,8 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 
 ### Carbon Copy Cloner
 - **Install:** https://bombich.com/download (or App Store) + paid license
-- **Purpose:** Disk cloning (powers external SSD backups per plan 0005)
-- **Setup notes:** Sign in / enter license. Recreate the existing backup tasks: Carbonizer → Carbonizer_BU on NAS, Carbonizer → Noisy Cricket clone. (Task definitions are not portable between Macs out-of-the-box; recreate via the UI.)
+- **Purpose:** Disk cloning (powers external-SSD backups)
+- **Setup notes:** Sign in / enter license. Recreate the existing backup tasks against the volumes named in your `~/Atlas/docs/gear/inventory.yaml` (external-storage device records). Task definitions are not portable between Macs out-of-the-box; recreate via the UI.
 
 ### DaisyDisk
 - **Install:** https://daisydiskapp.com/ (or App Store) + license
@@ -158,13 +158,13 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 
 ### Tailscale
 - **Install:** https://tailscale.com/download/macos
-- **Purpose:** Mesh VPN; provides access to NAS / brother's UGREEN / etc.
+- **Purpose:** Mesh VPN; provides access to remote NAS / family-shared infrastructure / etc.
 - **Setup notes:** Sign in. Installs the **Tailscale Network Extension** system extension (`io.tailscale.ipn.macsys.network-extension`) — approve in System Settings > Privacy & Security after install.
 
-### UGREEN NAS app
-- **Install:** From UGREEN: https://nas.ugreen.com/pages/download (or via the NAS web UI download link)
-- **Purpose:** Native client for the UGREEN DXP6800 (Peddocks2)
-- **Setup notes:** Sign in to UGREEN account; pair with NAS over LAN.
+### Vendor NAS app (if applicable)
+- **Install:** From the NAS vendor's site (e.g., UGREEN: https://nas.ugreen.com/pages/download) or via the NAS web UI download link
+- **Purpose:** Native client for the NAS
+- **Setup notes:** Sign in to the vendor account; pair with the NAS over LAN.
 
 ### Google Drive (Desktop)
 - **Install:** https://www.google.com/drive/download/
@@ -176,7 +176,7 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 ## System / hardware
 
 ### BetterDisplay
-- **Install:** https://github.com/waydabber/BetterDisplay (also a cask: `waydabber/betterdisplay/betterdisplay`). The `waydabber/betterdisplay` tap is in the Brewfile but the cask isn't declared because the **app itself** is installed natively on both machines; the tap is there for the separate `betterdisplaycli` formula (see below).
+- **Install:** https://github.com/waydabber/BetterDisplay (also a cask: `waydabber/betterdisplay/betterdisplay`). The `waydabber/betterdisplay` tap is in the Brewfile but the cask isn't declared because the **app itself** is installed natively; the tap is there for the separate `betterdisplaycli` formula (see below).
 - **Purpose:** Display management for external monitors (especially the DDC/CI control loop with `display_switch`)
 - **Setup notes:**
   - Login Item.
@@ -202,32 +202,29 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 
 ### Visual Studio Code
 - **Install:** https://code.visualstudio.com/ (or `brew install --cask visual-studio-code` if you want to bring it into brew management)
-- **Setup notes:** Sign in to Settings Sync (Microsoft account) for extensions + settings. Issue #48 in life-atlas tracks the long-term VS Code sync strategy.
+- **Setup notes:** Sign in to Settings Sync (Microsoft account) for extensions + settings.
 
 ---
 
 ## Fonts (user-installed, beyond brew casks)
 
-`~/Library/Fonts/` on AM2 contains licensed font families:
+`~/Library/Fonts/` on the source workstation may contain licensed font families that aren't reinstallable via a font catalog. Capture the list before migrating off the device.
 
-- **Butler** family (14 weights including stencil variants)
-- **Code Pro** family (Black, Bold, Demo, Light variants)
+If you have the original purchase / download archive, drag the `.otf` files into `~/Library/Fonts/` on the new workstation (or use Font Book's "Install Font" action). If not, re-purchase from the original source.
 
-If you have the original purchase / download archive, drag the `.otf` files into `~/Library/Fonts/` on AM5 (or use Font Book's "Install Font" action). If not, re-purchase from the original source (Butler is by Fabian De Smet on Behance; Code Pro is by Fontfabric).
-
-Recommendation: zip `~/Library/Fonts/*.otf` on AM2 and stash a copy in Atlas (`~/Atlas/config/fonts/` if you want to formalize a fonts subfolder, or as a one-off backup) to avoid the re-purchase question.
+Recommendation: zip `~/Library/Fonts/*.otf` on the source workstation and stash a copy in Atlas (`~/Atlas/config/fonts/` if you want to formalize a fonts subfolder, or as a one-off backup) to avoid the re-purchase question.
 
 ---
 
 ## Browser extensions (manual review / sync)
 
-| Browser | Extension count on AM2 | Recovery approach |
-|---|---|---|
-| Brave Browser | 10 extensions | Sign in to **Brave Sync** on AM5 — sync chain handles it. Confirm in chrome://extensions after sign-in. |
-| Google Chrome | 12 extensions | Sign in to Chrome account on AM5; extensions auto-install from your account profile. |
-| Firefox | (not enumerated) | Sign in to Firefox account; extensions sync automatically. |
+| Browser | Recovery approach |
+|---|---|
+| Brave Browser | Sign in to **Brave Sync** on the new workstation — sync chain handles it. Confirm in chrome://extensions after sign-in. |
+| Google Chrome | Sign in to the Chrome account on the new workstation; extensions auto-install from the account profile. |
+| Firefox | Sign in to the Firefox account; extensions sync automatically. |
 
-If you want a hand-curated list of extensions per browser (rather than relying on sync), open chrome://extensions on AM2 and screenshot/export the IDs; add a sub-bullet here. Not done in the initial inventory because browser-sync is reliable for personal use.
+If you want a hand-curated list of extensions per browser (rather than relying on sync), open chrome://extensions on the source workstation and screenshot/export the IDs; add a sub-bullet here. Not enumerated in the default inventory because browser-sync is reliable for personal use.
 
 ---
 
@@ -235,7 +232,7 @@ If you want a hand-curated list of extensions per browser (rather than relying o
 
 ### Python user packages (via `pip3 install --user`)
 
-`pip list --user` on AM2 shows: `brotli`, `cffi`, `charset-normalizer`, `cssselect2`, `et_xmlfile`, `fonttools`, `greenlet`, `lxml`, and more. These are mostly transitive dependencies of other tools (e.g., `fonttools` for font processing, `lxml` for various XML/HTML tasks). On AM5 they'll be installed on-demand the first time a tool needs them; no proactive action required.
+`pip list --user` on the source workstation typically shows a long tail of transitive dependencies of other tools (e.g., `fonttools` for font processing, `lxml` for various XML/HTML tasks). On a new workstation they'll be installed on-demand the first time a tool needs them; no proactive action required.
 
 ### Brewfile callouts (entries with non-obvious requirements)
 
@@ -248,7 +245,7 @@ If you want a hand-curated list of extensions per browser (rather than relying o
 
 ## Login Items (set up after each app installs)
 
-These auto-launch at login on AM2. Most are set up automatically by their parent app's install. The ones to verify manually after AM5 onboarding:
+These auto-launch at login on the source workstation. Most are set up automatically by their parent app's install. The ones to verify manually after onboarding a new workstation:
 
 - BetterDisplay → enable in BetterDisplay > Settings > Launch at Login
 - Google Drive → Drive sets it during setup
@@ -262,11 +259,11 @@ These auto-launch at login on AM2. Most are set up automatically by their parent
 
 ## LaunchAgents to be aware of (informational; mostly auto-installed)
 
-| Path | Source | Action on AM5 |
+| Path | Source | Action on new workstation |
 |---|---|---|
-| `~/Library/LaunchAgents/ai.hermes.gateway.plist` | Hermes (unknown app — investigate or skip) | Likely AM2-specific; skip unless you remember the app |
+| `~/Library/LaunchAgents/ai.hermes.gateway.plist` | Hermes (unknown app — investigate or skip) | Likely source-machine-specific; skip unless you remember the app |
 | `~/Library/LaunchAgents/com.adobe.GC.Invoker-1.0.plist` | Adobe Creative Cloud | Auto |
-| `~/Library/LaunchAgents/com.dreamhome.sweepstakes.plist` | Unknown — likely cruft | Skip; investigate on AM2 if you care |
+| `~/Library/LaunchAgents/com.dreamhome.sweepstakes.plist` | Unknown — likely cruft | Skip; investigate on the source workstation if you care |
 | `~/Library/LaunchAgents/com.google.GoogleUpdater.wake.plist` | Google updater | Installed with any Google app |
 | `~/Library/LaunchAgents/com.google.keystone.agent.plist` | Google keystone | Auto with Google products |
 | `~/Library/LaunchAgents/homebrew.mxcl.display_switch.plist` | brew tap `haimgel/tools` | Installed by `brew bundle` (in Brewfile) |
@@ -278,7 +275,7 @@ These auto-launch at login on AM2. Most are set up automatically by their parent
 
 Approval prompt appears the first time the parent app launches; usually a one-time gate.
 
-| Extension | Parent app | State on AM2 |
+| Extension | Parent app | State on source workstation |
 |---|---|---|
 | Tailscale Network Extension | Tailscale.app | activated enabled |
 | OBS Virtual Camera | OBS Studio | activated enabled |
@@ -296,7 +293,7 @@ These used to be `mas` entries in the Brewfile. As of 2026-05-25 they're documen
 | GarageBand | 682658836 | |
 | Harvest | 506189836 | Time tracking (paid) |
 | iMovie | 408981434 | |
-| Keynote | 409183694 | (Note: "Keynote Creator Studio" is a separate Apple app already on AM5; install Keynote proper only if you specifically need iWork.) |
+| Keynote | 409183694 | (Note: "Keynote Creator Studio" may ship on newer macOS as a separate Apple app; install Keynote proper only if you specifically need iWork.) |
 | Meeter | 1510445899 | Auto-launches video calls. Login Item — enable in Meeter preferences. |
 | NordVPN | 905953485 | Login Item — enable in NordVPN preferences. Vendor-direct download also works (https://nordvpn.com). |
 | Numbers | 409203825 | See Keynote note. |
@@ -311,9 +308,9 @@ Slack was previously listed here; moved to `cask "slack"` in the Brewfile on 202
 
 ## Archived / no longer in use
 
-Apps that were on AM2 but are NOT being brought forward to AM5. Kept here as an audit trail — if a future need surfaces, the install pointer is already documented.
+Apps that were on the source workstation but are NOT being brought forward to a new workstation. Kept here as an audit trail — if a future need surfaces, the install pointer is already documented.
 
-Pruned 2026-05-25 during plan 0007 Phase 5 AM5 onboarding.
+Pruned 2026-05-25 during a new-workstation onboarding.
 
 ### AI clients
 - **Copilot.app** — Microsoft Copilot desktop. Install: Microsoft Store / https://copilot.microsoft.com.
@@ -331,7 +328,7 @@ Pruned 2026-05-25 during plan 0007 Phase 5 AM5 onboarding.
 - **Calibre** — eBook management. Install: https://calibre-ebook.com/download_osx.
 
 ### System / hardware
-- **Logitech G HUB** — G-series peripheral configuration; carried a "waiting for user" driver-extension gate on AM2 and isn't needed without G-series gear. Install: https://www.logitechg.com/en-us/innovation/g-hub.html.
+- **Logitech G HUB** — G-series peripheral configuration; carried a "waiting for user" driver-extension gate on the source workstation and isn't needed without G-series gear. Install: https://www.logitechg.com/en-us/innovation/g-hub.html.
 - **VIA (native)** — replaced by the **usevia.app** web app (see System / hardware section above). Native release: https://github.com/the-via/releases.
 - **BeardedSpice** — media-key bridge to web players. Install: https://github.com/beardedspice/beardedspice.
 - **Airfoil + Airfoil Satellite** — Mac → AirPlay audio streaming (paid). Install: https://rogueamoeba.com/airfoil/.
@@ -350,6 +347,6 @@ Pruned 2026-05-25 during plan 0007 Phase 5 AM5 onboarding.
 
 ## Notes / things to revisit
 
-- `ai.hermes.gateway.plist` and `com.dreamhome.sweepstakes.plist` LaunchAgents: investigate or remove before AM5 onboarding to avoid carrying cruft.
+- `ai.hermes.gateway.plist` and `com.dreamhome.sweepstakes.plist` LaunchAgents: investigate or remove before onboarding a new workstation to avoid carrying cruft.
 - Spark Desktop's cask was renamed `spark` → `spark-app` (note from old Brewfile); use `spark-app` if you ever cask it.
 - `mas install` regression on macOS 26.5 is tracked as a life-atlas drift issue (#53); consider revisiting the Brewfile if a future Homebrew/mas release fixes it.

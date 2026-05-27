@@ -1,7 +1,8 @@
-# Brewfile — MacBook Pro (Personal)
+# Brewfile — personal macOS workstation
 #
-# Reconciled 2026-05-25 against `brew bundle dump` on AM2 (host=AM2, M2 Pro)
-# during plan 0007 Phase 3. Reflects actual brew-managed state.
+# Reflects the brew-managed state of a personal Mac. Reconcile periodically
+# by dumping current state with `brew bundle dump --file=/tmp/Brewfile.dump
+# --force --describe` and diffing against this file.
 #
 # Run from this directory:  brew bundle
 # Check drift without writes:  brew bundle check --verbose
@@ -12,7 +13,7 @@
 # Idempotent: re-running `brew bundle` is safe. Entries already installed are skipped.
 #
 # Natively-installed apps (drag-to-Applications, Adobe Creative Cloud, etc.)
-# live in environment/apps-manual.md, NOT here. See plan 0007 Phase 4.
+# live in environment/apps-manual.md, NOT here.
 
 # ── Taps ──────────────────────────────────────────────────────────
 tap "haimgel/tools"              # for display_switch
@@ -27,7 +28,7 @@ brew "git"                       # newer git than Xcode CLT
 brew "gh"                        # GitHub CLI (issues, PRs, label setup per CLAUDE.md)
 brew "fnm"                       # Fast Node Manager (sources the npm globals declared below)
 brew "mas"                       # Mac App Store CLI (`mas list` still useful; see note below re: `mas install`)
-brew "gitleaks"                  # secret scanner (plan 0007 Phase 2f)
+brew "gitleaks"                  # secret scanner
 
 # ── CLI: modern unix replacements ─────────────────────────────────
 brew "ripgrep"                   # rg — fast grep
@@ -44,9 +45,9 @@ brew "htop"                      # interactive process viewer
 # ── CLI: language runtimes ────────────────────────────────────────
 brew "python@3.12"               # explicit pin; tools (uvx, etc.) follow
 
-# ── WeasyPrint native libs (for syntheus repo's /contract PDF pipeline) ──
-# Per syntheus CLAUDE.md: WeasyPrint needs Homebrew native libs at
-# /opt/homebrew/lib; venv lives at ~/.syntheus/weasyprint-venv.
+# ── WeasyPrint native libs ────────────────────────────────────────
+# Required by PDF pipelines that use WeasyPrint; needs the native libs
+# at /opt/homebrew/lib (find/link them from a venv at runtime).
 # `pango` is also declared below under media/photo — brew dedupes safely.
 brew "cairo"
 brew "fontconfig"
@@ -58,15 +59,16 @@ brew "ffmpeg"                    # audio/video transcoding
 brew "pango"                     # i18n text layout (transitive but pinned)
 brew "poppler"                   # PDF rendering
 brew "wimlib"                    # Windows Imaging Format support (for PC tooling)
-brew "immich-cli"                # Immich photo manager CLI (plans 0002, 0005)
+brew "immich-cli"                # Immich photo manager CLI
 
 # ── CLI: security / secrets ───────────────────────────────────────
 brew "bitwarden-cli"             # `bw` — Bitwarden command-line
+brew "git-filter-repo"           # surgical history rewrites (e.g., removing leaked tokens from past commits)
 
 # ── CLI: system / maintenance ─────────────────────────────────────
 brew "mole"                      # deep clean + optimize the Mac (CLI; GUI sibling = `mole-app` cask below)
 
-# ── Display switching (USB-C KVM via DDC/CI; plan 0008) ───────────
+# ── Display switching (USB-C KVM via DDC/CI) ──────────────────────
 brew "m1ddc"                     # underlying DDC/CI control for Apple Silicon
 brew "haimgel/tools/display_switch"  # watches USB connect/disconnect → switches monitor input
 brew "waydabber/betterdisplay/betterdisplaycli"  # CLI invoked by display_switch's .ini hooks.
@@ -75,11 +77,11 @@ brew "waydabber/betterdisplay/betterdisplaycli"  # CLI invoked by display_switch
                                   # cask shim at /opt/homebrew/bin/betterdisplaycli (from the
                                   # BetterDisplay app cask) is a different artifact — a bare
                                   # exec to the GUI app binary — and is NOT a substitute for
-                                  # this formula. See plan 0008 + apps-manual.md.
+                                  # this formula. See apps-manual.md for the trap.
 
 # ── Casks (truly brew-managed) ────────────────────────────────────
-cask "font-meslo-lg-nerd-font"   # required for p10k icons (plan 0003)
-cask "ghostty"                   # terminal emulator (plan 0003)
+cask "font-meslo-lg-nerd-font"   # required for p10k icons
+cask "ghostty"                   # terminal emulator
 cask "mole-app"                  # GUI version of `brew "mole"` (same upstream project, tw93/Mole)
 cask "slack"                     # vendor cask; replaces App Store install (auto-updates without App Store)
 
@@ -89,12 +91,11 @@ cask "slack"                     # vendor cask; replaces App Store install (auto
 # Store app and documented in environment/apps-manual.md. `mas list` (above) is
 # still useful for auditing what's installed.
 #
-# Removed from this Brewfile (2026-05-25 during AM5 onboarding): Blackmagic Disk
-# Speed Test, Fantastical, GarageBand, Harvest, iMovie, Keynote, Meeter,
-# NordVPN, Numbers, Pages, Paprika Recipe Manager 3, Shazam, The Unarchiver.
-# See apps-manual.md > Mac App Store apps.
-# (Slack was in this list originally but moved back to a vendor cask above on
-# 2026-05-26 — see `cask "slack"`.)
+# Removed from this Brewfile (2026-05-25): Blackmagic Disk Speed Test,
+# Fantastical, GarageBand, Harvest, iMovie, Keynote, Meeter, NordVPN, Numbers,
+# Pages, Paprika Recipe Manager 3, Shazam, The Unarchiver. See apps-manual.md >
+# Mac App Store apps. (Slack was in this list originally but moved back to a
+# vendor cask above on 2026-05-26 — see `cask "slack"`.)
 
 # ── NPM globals (via Brewfile's `npm` syntax; requires fnm-managed node) ──
 npm "@google/gemini-cli"         # Gemini CLI
