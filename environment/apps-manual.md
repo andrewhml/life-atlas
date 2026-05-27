@@ -303,8 +303,9 @@ These used to be `mas` entries in the Brewfile. As of 2026-05-25 they're documen
 | Pages | 409201541 | See Keynote note. |
 | Paprika Recipe Manager 3 | 1303222628 | Paid app. |
 | Shazam | 897118787 | |
-| Slack | 803453959 | Vendor-direct download also works (https://slack.com/downloads/mac). |
 | The Unarchiver | 425424353 | |
+
+Slack was previously listed here; moved to `cask "slack"` in the Brewfile on 2026-05-26 so it auto-updates without the App Store.
 
 ---
 
