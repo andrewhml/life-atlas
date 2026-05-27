@@ -48,7 +48,7 @@ Scaffold a new year with `environment/macos_create_photo_year.sh YYYY`.
 
 ## 🎞️ NAS Media Library
 
-See [`device-schemas/nas-structure.md`](../device-schemas/nas-structure.md) for the shared `Media/` share structure (`books`, `movies`, `music`, `photos`, `tvshows`).
+The shared `Media/` share on a NAS typically exposes top-level subfolders for `books/`, `movies/`, `music/`, `photos/`, `tvshows/`. Capture your own NAS's exact share layout in `~/Atlas/docs/gear/inventory.yaml` (under the NAS device record's `shares` field).
 
 ---
 

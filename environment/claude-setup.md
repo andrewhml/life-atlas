@@ -1,6 +1,6 @@
 # Claude Code harness setup
 
-Runbook for the Claude Code harness shared across personal Macs via the private git repo `andrewhml/claude-harness`. See `docs/plans/0007-am5-onboarding-and-harness-sync.md` for the full design and rationale.
+Runbook for the Claude Code harness shared across personal Macs via a private git repo. (Phase 3 will scrub the personal-repo name; for now the broken cross-link to the private plan that originally documented this is removed.)
 
 **Architecture in one paragraph:** `~/.claude/` on each machine is a git clone of `andrewhml/claude-harness`. Edits get committed and pushed; other machines pull via a `claude` shell wrapper that runs `git pull --rebase --autostash` before launching Claude Code. Secrets live in macOS Keychain (never in the repo); MCP servers are launched via per-server wrappers under `mcp-wrappers/` that pull secrets at launch time. Per-machine runtime state (`sessions/`, `history.jsonl`, `cache/`, `settings.local.json`, etc.) is gitignored.
 
@@ -376,8 +376,6 @@ Then `gitleaks protect --staged --redact --verbose` before commit.
 
 ## Pointers
 
-- **Plan:** `docs/plans/0007-am5-onboarding-and-harness-sync.md` (full design + rationale + risks)
-- **Plan 0003:** `docs/plans/0003-zsh-prompt-setup.md` (shell-prompt sync model; sister to this one for shell)
 - **Setup script:** `environment/setup-claude-secrets.sh`
 - **Brewfile:** `environment/Brewfile`
 - **Native app inventory:** `environment/apps-manual.md`

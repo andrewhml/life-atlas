@@ -2,7 +2,7 @@
 
 **Status:** pending. Documents the initial setup and maintenance of the UGREEN NAS named `Peddocks2`.
 
-See [`device-schemas/nas-structure.md`](../device-schemas/nas-structure.md) for the target folder structure.
+See your own filled-in `~/Atlas/docs/gear/inventory.yaml` (the NAS device record's `shares` and `services` fields) for the target folder structure and service layout. The public template at `device-schemas/inventory.template.yaml` shows the schema shape.
 
 ---
 

@@ -1,6 +1,6 @@
 # photo-coverage
 
-Diagnostic and reconciliation tool for Immich photo libraries. Companion to Plan 0006 — `docs/plans/0006-photo-coverage-and-icloud-drain.md`.
+Diagnostic and reconciliation tool for Immich photo libraries. Built as a companion to a photo-coverage validation workflow (validate library completeness before draining cloud-photo source).
 
 The problem it solves: Immich libraries that grew through mixed import paths (iOS auto-backup, web UI upload of Google Takeout, manual rsync, external libraries) often contain assets with degraded bytes or wrong metadata. A sample-based spot check can pass while whole classes fail systematically. This tool measures the scope before committing to a fix strategy.
 
