@@ -21,21 +21,9 @@ The pattern's purpose is comprehensive: **one mental model for where anything li
 
 ## Reference implementation (this user's setup)
 
-The pattern is implementation-agnostic. This user's concrete choices:
+The pattern is implementation-agnostic. The concrete pattern→device bindings (which physical box IS the NAS, which workstation IS the primary, etc.) live **outside this repo** — in `~/Atlas/config/atlas/reference-implementation.md`. Read that file on demand when a task needs a specific name; it's cloud-synced across the user's devices.
 
-| Pattern role | Reference implementation |
-|---|---|
-| Canonical cloud drive | Google Drive, mounted at `~/Atlas/` |
-| Primary workstation | MacBook Pro (personal, macOS) |
-| Secondary workstation | Personal PC (Windows 11 Pro, NVIDIA RTX 5080) |
-| Company workstation | MacBook Pro (work, macOS) |
-| Network-attached storage | UGREEN NAS named `Peddocks2` at `/Volumes/personal_folder/Atlas` |
-| External photo SSDs | SanDisk 2TB × 2: `Carbonizer` (primary, usually mounted) + `Noisy Cricket` (1:1 CCC clone) |
-| Phone | iPhone 16 Pro (Google Drive iOS app) |
-| Tablet | iPad 2024 (Google Drive iOS app) |
-| Consulting cloud | Separate Syntheus Google Drive |
-
-**Language rule:** when docs describe the *pattern*, use abstract terms ("cloud drive folder," "primary workstation," "NAS," "mobile device"). When describing the *reference implementation*, specific names are fine. Device-schema files name specific devices because they ARE specific; that's expected.
+**Language rule:** when docs in this repo describe the *pattern*, use abstract terms only ("cloud drive folder," "primary workstation," "NAS," "mobile device"). Specifics belong in the private reference-implementation file, not here.
 
 ---
 
@@ -65,7 +53,7 @@ Not everything belongs in a cloud drive. These paths stay on a workstation, mana
 |---|---|---|
 | `~/workspace/` | Code repositories | Managed by git; `.git/` and large `node_modules/` degrade cloud sync |
 | `~/Pictures/` | DSLR / drone originals, editing libraries | Too large, too volatile for cloud sync |
-| Syntheus cloud drive | Consulting work | Separate account, separate ownership |
+| Separate consulting/employer cloud | Consulting/work content | Separate account, separate ownership |
 
 ---
 
@@ -77,7 +65,7 @@ Not everything belongs in a cloud drive. These paths stay on a workstation, mana
 |---|---|---|---|
 | Cloud drive workspace | `~/Atlas/workspace/` | Non-code projects (planning, writing, personal) | Shareable via cloud |
 | Local code workspace | `~/workspace/` | Code repositories under git | Version-controlled, binary-heavy |
-| Company cloud workspace | Syntheus cloud drive | Consulting work | Separate account |
+| Company cloud workspace | Separate consulting/employer cloud | Consulting/work content | Separate account |
 
 When the user says "workspace" and context is ambiguous, ask which one.
 
@@ -102,16 +90,16 @@ life-atlas/
 ## Conventions
 
 ### Tone
-- **README, schema docs, bookmarks README: external.** Prefer abstract pattern language. Call out the reference implementation as a specific example, not the only path.
-- **CLAUDE.md: internal.** First-person OK. Can name specific devices and services freely. Not part of the public surface.
+- **README, schema docs, bookmarks README: external.** Pattern language only; specifics belong in the private reference-implementation file.
+- **CLAUDE.md: internal.** First-person OK. Still pattern-language — this file is in the public repo too (per plan 0009). Specific device names, emails, employer references live in `~/Atlas/config/atlas/reference-implementation.md`.
 
 ### Platform-neutral language (rule)
 
 When docs describe the *pattern*, use abstract terms:
 
-- "cloud drive folder" — not "Google Drive"
+- "cloud drive folder" — not the vendor name
 - "primary workstation" / "local workstation" — not "Mac" (in pattern context)
-- "NAS" / "network-attached storage" — not "UGREEN NAS"
+- "NAS" / "network-attached storage" — not the vendor or device codename
 - "mobile device" — not "iPhone"
 
 When docs describe the reference implementation, concrete names are fine. Device-schema docs name specific devices because they describe specific devices.
@@ -191,7 +179,7 @@ If a task requires broader permissions, ask the user first. Don't silently expan
 
 ### Pattern→reference bindings (post-plan-0009)
 
-The "Reference implementation" table is being moved out of this file into `~/Atlas/config/atlas/reference-implementation.md` as part of plan 0009. When a task needs a specific name — which physical box IS the NAS, which workstation IS AM5, what's the user's email — read that file on demand. No session-start auto-load.
+The "Reference implementation" table lives in `~/Atlas/config/atlas/reference-implementation.md` (out of this repo, cloud-synced privately). When a task needs a specific name — which physical box IS the NAS, which workstation IS the primary, what's the user's email — read that file on demand. No session-start auto-load.
 
 ### Hook install on every clone
 

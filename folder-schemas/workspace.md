@@ -10,7 +10,7 @@
 |---|---|---|---|
 | Cloud drive workspace | `~/Atlas/workspace/` | Non-code projects (planning, writing, personal) | Fits cloud drive; shareable |
 | Local code workspace | `~/workspace/` | Code repositories under version control | Binary-heavy for cloud sync |
-| Company cloud workspace | Syntheus cloud drive | Consulting work | Separate company account |
+| Company cloud workspace | Separate consulting/employer cloud drive | Consulting / employer work | Separate account, separate ownership |
 
 Pick the right workspace for each project based on **what it is made of**, not where you happen to be when you start it.
 
@@ -26,10 +26,10 @@ workspace/
 └── work/           # Job / employer-related
 ```
 
-The Syntheus workspace uses project-lifecycle buckets:
+A consulting/employer workspace typically uses project-lifecycle buckets instead:
 
 ```
-workspace/ (Syntheus cloud drive)
+workspace/ (consulting/employer cloud drive)
 ├── active-projects/
 ├── proposals/
 ├── resources/
@@ -37,7 +37,7 @@ workspace/ (Syntheus cloud drive)
 └── internal/
 ```
 
-Client work sits in subfolders under `active-projects/`.
+Client/engagement work sits in subfolders under `active-projects/`.
 
 ---
 
