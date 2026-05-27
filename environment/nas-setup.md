@@ -1,6 +1,6 @@
-# 📦 NAS Setup — Peddocks2
+# 📦 NAS Setup
 
-**Status:** pending. Documents the initial setup and maintenance of the UGREEN NAS named `Peddocks2`.
+**Status:** pending. Documents the initial setup and maintenance of the personal NAS.
 
 See your own filled-in `~/Atlas/docs/gear/inventory.yaml` (the NAS device record's `shares` and `services` fields) for the target folder structure and service layout. The public template at `device-schemas/inventory.template.yaml` shows the schema shape.
 
@@ -10,7 +10,7 @@ See your own filled-in `~/Atlas/docs/gear/inventory.yaml` (the NAS device record
 
 - [ ] Initial setup walkthrough (RAID, volumes, network)
 - [ ] User / group / share configuration
-- [ ] UGREEN Cloud Drive → Google Drive setup for Atlas mirror
+- [ ] Vendor-app → cloud-drive setup for Atlas mirror (e.g., UGREEN Cloud Drive ↔ Google Drive)
 - [ ] Time Machine share configuration
 - [ ] Docker bring-up (Portainer, Plex, Immich, Nginx Proxy Manager)
 - [ ] SMB / AFP share mounting on Mac (auto-mount on login)
