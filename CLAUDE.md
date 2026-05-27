@@ -46,9 +46,9 @@ The pattern is implementation-agnostic. This user's concrete choices:
 ├── archive/    # Completed or reference-only projects
 ├── config/     # Cross-device config (ai, apps, desktop-images, keys,
 │               # settings, shortcuts, templates, themes)
-├── docs/       # Personal documents (Identity, Health, Finance, Legal,
-│               # Auto, Housing, Travel, Events, Gear, Music,
-│               # Personality, Recovery Codes, Reference)
+├── docs/       # Personal documents (identity, health, finance, legal,
+│               # auto, housing, travel, events, gear, music,
+│               # personality, recovery codes, reference)
 ├── share/      # Material shared with specific people
 └── workspace/  # Non-code projects that fit in the cloud drive
 ```
@@ -134,14 +134,17 @@ All scripts in `environment/` must be safe to rerun with the same outcome. Requi
 - `defaults write` is idempotent — safe to use freely
 
 ### Atlas read/write boundaries
-Atlas is the operational config store, not a no-go zone. The boundary is by subtree:
+Atlas is the operational config store, not a no-go zone. The boundary is by subtree (reconciled with `.claude/settings.json` per plan 0009):
 
-- **`~/Atlas/config/`** — read and write OK (except `keys/`). This is where cross-device config lives and is actively maintained. Scripts may seed, fingerprint, validate, or sync config files here.
-- **`~/Atlas/config/keys/`** — **never** read or write. Secrets only.
-- **`~/Atlas/docs/`** — never read or write. Personal documents (identity, health, finance, legal). Owned by the cloud drive app and the human.
-- **`~/Atlas/archive/`, `~/Atlas/share/`, `~/Atlas/workspace/`** — never read or write without explicit per-task approval. These hold user-owned content.
-- **Never commit** any content from `~/Atlas/docs/`, `~/Atlas/config/keys/`, or any other personal-data path into this repo.
-- **Cloud-sync etiquette:** when writing to `~/Atlas/config/`, write to a scratch path first then `mv` into place (atomic from Drive's perspective). Avoid in-place edits during active sync.
+- **`~/Atlas/config/atlas/`** — read and write OK. Cross-device pattern→reference bindings (`reference-implementation.md`) and the lint deny-list (`lint-denylist.txt`) live here. Cloud-synced across the user's devices.
+- **`~/Atlas/config/keys/`** — **never** read or write. Secrets only. Segregation is structural (no allow rule covers it) — not a fragile deny-below-allow.
+- **Rest of `~/Atlas/config/`** — never read or write without explicit per-task approval.
+- **`~/Atlas/docs/gear/`** — read and write OK. Device inventory (`inventory.yaml`) — the single source of truth for AI-context use cases, analogous to the Brewfile for tools.
+- **Rest of `~/Atlas/docs/`** — never read or write. Personal documents (identity, health, finance, legal, etc.). Owned by the cloud drive app and the human.
+- **`~/Atlas/workspace/atlas-ops/`** — read and write OK. The user's personal execution plans (formerly in this repo's `docs/plans/`).
+- **Rest of `~/Atlas/workspace/`, `~/Atlas/archive/`, `~/Atlas/share/`** — never read or write without explicit per-task approval. These hold user-owned content.
+- **Never commit** any content from `~/Atlas/docs/` (other than the inventory schema template), `~/Atlas/config/keys/`, or any other personal-data path into this repo.
+- **Cloud-sync etiquette:** when writing to `~/Atlas/config/atlas/` or `~/Atlas/docs/gear/`, write to a scratch path first then `mv` into place (atomic from Drive's perspective). Avoid in-place edits during active sync.
 - Don't assume a `~/Kit/` path exists — "Kit" was an earlier design that Atlas superseded.
 
 ---
@@ -174,14 +177,25 @@ Session-end assumes these labels exist on `andrewhml/life-atlas`. Create with `g
 
 Claude Code's permissions for this repo are configured in `.claude/settings.json`. The allowlist is intentionally narrow:
 
-- **Write access (repo):** only `.claude/*` and `docs/*` by default
-- **Write access (Atlas):** anywhere under `~/Atlas/config/` *except* `keys/` — for seeding, syncing, and maintaining cross-device config files
+- **Write access (repo):** `.claude/*`, `docs/*`, plus targeted top-level paths needed for the public-guide surface: `CLAUDE.md`, `README.md`, `device-schemas/*`, `environment/*`, `scripts/*`
+- **Write access (Atlas):** three narrow subtrees only:
+  - `~/Atlas/config/atlas/*` — cross-device pattern→reference bindings + the lint deny-list (see "Pattern→reference bindings" below)
+  - `~/Atlas/docs/gear/*` — device inventory (the filled-in `inventory.yaml` lives here; public repo holds only the template)
+  - `~/Atlas/workspace/atlas-ops/*` — operational plans (the user's personal execution logs)
 - **Bash allowed:** read-only git (`status`, `log`, `branch`, `diff`, `stash`, `show`), plus `gh issue`/`gh label` for session workflow
 - **No write access** to any other repo path without explicit user approval
-- **No access** to `~/Atlas/config/keys/` under any circumstances
-- **No access** to `~/Atlas/docs/`, `~/Atlas/archive/`, `~/Atlas/share/`, `~/Atlas/workspace/` without explicit per-task approval (personal content lives there)
+- **No access** to `~/Atlas/config/keys/` under any circumstances (segregation is structural — no allow rule covers it, not a deny-below-allow)
+- **No access** to the rest of `~/Atlas/docs/` (`identity/`, `health/`, `finance/`, etc.), `~/Atlas/archive/`, `~/Atlas/share/`, or the rest of `~/Atlas/workspace/` without explicit per-task approval (personal content lives there)
 
 If a task requires broader permissions, ask the user first. Don't silently expand the allowlist.
+
+### Pattern→reference bindings (post-plan-0009)
+
+The "Reference implementation" table is being moved out of this file into `~/Atlas/config/atlas/reference-implementation.md` as part of plan 0009. When a task needs a specific name — which physical box IS the NAS, which workstation IS AM5, what's the user's email — read that file on demand. No session-start auto-load.
+
+### Hook install on every clone
+
+After cloning life-atlas on a new device, run `bash scripts/install-hooks.sh` to wire the personal-data lint into `.git/hooks/pre-commit`. The real deny-list lives at `~/Atlas/config/atlas/lint-denylist.txt` (cloud-synced via Atlas); confirm it's present before relying on the hook.
 
 ---
 
