@@ -81,6 +81,7 @@ brew "waydabber/betterdisplay/betterdisplaycli"  # CLI invoked by display_switch
 cask "font-meslo-lg-nerd-font"   # required for p10k icons (plan 0003)
 cask "ghostty"                   # terminal emulator (plan 0003)
 cask "mole-app"                  # GUI version of `brew "mole"` (same upstream project, tw93/Mole)
+cask "slack"                     # vendor cask; replaces App Store install (auto-updates without App Store)
 
 # ── App Store apps ────────────────────────────────────────────────
 # `mas install` is broken on macOS 26.5 (requires sudo + several ADAM IDs return
@@ -90,8 +91,10 @@ cask "mole-app"                  # GUI version of `brew "mole"` (same upstream p
 #
 # Removed from this Brewfile (2026-05-25 during AM5 onboarding): Blackmagic Disk
 # Speed Test, Fantastical, GarageBand, Harvest, iMovie, Keynote, Meeter,
-# NordVPN, Numbers, Pages, Paprika Recipe Manager 3, Shazam, Slack, The
-# Unarchiver. See apps-manual.md > Mac App Store apps.
+# NordVPN, Numbers, Pages, Paprika Recipe Manager 3, Shazam, The Unarchiver.
+# See apps-manual.md > Mac App Store apps.
+# (Slack was in this list originally but moved back to a vendor cask above on
+# 2026-05-26 — see `cask "slack"`.)
 
 # ── NPM globals (via Brewfile's `npm` syntax; requires fnm-managed node) ──
 npm "@google/gemini-cli"         # Gemini CLI
