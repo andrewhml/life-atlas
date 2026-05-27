@@ -124,7 +124,7 @@ LaunchAgents auto-installed by CC: `com.adobe.AdobeCreativeCloud`, `com.adobe.Ad
 
 ### Plex / Plexamp
 - **Install:** https://www.plex.tv/media-server-downloads/ + https://www.plex.tv/plexamp
-- **Setup notes:** Sign in to plex.tv account. NAS Plex server lives at `plex.peddocks.ddns.net` (see device-schemas/nas-services.md).
+- **Setup notes:** Sign in to plex.tv account. If you run Plex on your NAS, the server URL is captured in your `~/Atlas/docs/gear/inventory.yaml` (NAS device record, `services` field).
 
 ### CapCut
 - **Install:** https://www.capcut.com/ or Mac App Store
@@ -241,8 +241,8 @@ If you want a hand-curated list of extensions per browser (rather than relying o
 
 - **`betterdisplaycli`** — formula `waydabber/betterdisplay/betterdisplaycli`. Installs the real BetterDisplay CLI binary to `/opt/homebrew/bin/betterdisplaycli`. Three gotchas worth knowing:
   - **No bottle published** — `brew bundle` will compile from source via Swift. This requires **full Xcode ≥14** (`/Applications/Xcode.app`), not just Command Line Tools. If `brew install` errors with a missing Swift toolchain, install Xcode from the App Store first.
-  - **Do not confuse with the cask shim.** The BetterDisplay app cask (`waydabber/betterdisplay/betterdisplay`) installs a wrapper at the same path `/opt/homebrew/bin/betterdisplaycli` whose entire content is `exec '/Applications/BetterDisplay.app/Contents/MacOS/BetterDisplay' "$@"`. Calling it spawns extra GUI instances instead of acting as a CLI — unsuitable for `display_switch`'s LaunchAgent. If `brew bundle install` fails on the linking step because the cask shim is already at that path, run **`brew link --overwrite betterdisplaycli`** — that makes the formula's real binary win at `/opt/homebrew/bin/betterdisplaycli` without removing the cask (do **not** `brew uninstall --cask betterdisplay`; that removes the BetterDisplay GUI app entirely). Observed in practice: AM5's `brew bundle install` needed the `--overwrite` step; AM2's did not (the formula install overwrote the shim cleanly without intervention — reason unclear, mention it if you need to debug on a third machine). The empirical proof and the plan around this live in `docs/plans/0008-display-config-sync.md`.
-  - **Alternative: GUI "Install CLI tool" menu action** in BetterDisplay → Settings drops a different ~218 KB launcher at `/usr/local/bin/betterdisplaycli` (`root:wheel`). Works correctly but isn't Brewfile-managed; documented here for historical context — AM2 originally used this path before the 2026-05-26 pivot to the formula.
+  - **Do not confuse with the cask shim.** The BetterDisplay app cask (`waydabber/betterdisplay/betterdisplay`) installs a wrapper at the same path `/opt/homebrew/bin/betterdisplaycli` whose entire content is `exec '/Applications/BetterDisplay.app/Contents/MacOS/BetterDisplay' "$@"`. Calling it spawns extra GUI instances instead of acting as a CLI — unsuitable for `display_switch`'s LaunchAgent. If `brew bundle install` fails on the linking step because the cask shim is already at that path, run **`brew link --overwrite betterdisplaycli`** — that makes the formula's real binary win at `/opt/homebrew/bin/betterdisplaycli` without removing the cask (do **not** `brew uninstall --cask betterdisplay`; that removes the BetterDisplay GUI app entirely). Observed in practice: behavior varies between Macs — one workstation's `brew bundle install` may need the `--overwrite` step and another may not (the formula install sometimes overwrites the shim cleanly without intervention — reason unclear). Mention if you debug on a third machine.
+  - **Alternative: GUI "Install CLI tool" menu action** in BetterDisplay → Settings drops a different ~218 KB launcher at `/usr/local/bin/betterdisplaycli` (`root:wheel`). Works correctly but isn't Brewfile-managed; documented here for historical context — some setups originally used this path before pivoting to the formula.
 
 ---
 

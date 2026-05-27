@@ -35,21 +35,7 @@ Pick a tool for each role and stay consistent. The schemas and scripts in this r
 
 ## 🔧 Reference implementation
 
-This repo is currently developed against one concrete setup. Adapt as needed:
-
-| Role | Reference choice |
-|---|---|
-| Cloud drive folder | Google Drive (`~/Atlas/`) |
-| Primary workstation | MacBook Pro (macOS, personal) |
-| Secondary workstation | Windows 11 Pro PC |
-| Company workstation | MacBook Pro (macOS, work) |
-| NAS | UGREEN (`Peddocks2` at `/Volumes/personal_folder/Atlas`) |
-| External photo SSDs | SanDisk 2TB × 2 (`Carbonizer` + 1:1 clone `Noisy Cricket`) |
-| Phone | iPhone 16 Pro |
-| Tablet | iPad 2024 |
-| Consulting cloud | Separate Syntheus Google Drive |
-
-See `device-schemas/` for per-device folder layout and setup.
+This repo describes the *pattern*. The concrete pattern→device bindings (which physical NAS, which workstation, etc.) live alongside each user's own Atlas — not in this repo — so the pattern stays portable and personal specifics stay private. See `device-schemas/` for the per-device schema templates anyone can fill in for their own setup.
 
 ---
 
@@ -68,19 +54,19 @@ See `device-schemas/` for per-device folder layout and setup.
 │   ├── templates/
 │   └── themes/
 ├── docs/       # Personal documents
-│   ├── Auto/
-│   ├── Events/
-│   ├── Finance/
-│   ├── Gear/
-│   ├── Health/
-│   ├── Housing/
-│   ├── Identity/
-│   ├── Legal/
-│   ├── Music/
-│   ├── Personality/
-│   ├── Recovery Codes/
-│   ├── Reference/
-│   └── Travel/
+│   ├── auto/
+│   ├── events/
+│   ├── finance/
+│   ├── gear/
+│   ├── health/
+│   ├── housing/
+│   ├── identity/
+│   ├── legal/
+│   ├── music/
+│   ├── personality/
+│   ├── recovery codes/
+│   ├── reference/
+│   └── travel/
 ├── share/      # Material shared with specific people
 └── workspace/  # Non-code projects that fit in the cloud drive
 ```
@@ -117,7 +103,7 @@ The pattern: **Atlas for anything shareable, searchable, and cloud-friendly. Loc
 | Link | Reference method | Direction |
 |---|---|---|
 | Cloud ↔ Primary workstation | Cloud drive desktop app (Google Drive for Desktop) | Bidirectional |
-| Primary workstation ↔ NAS | NAS cloud-drive integration (UGREEN Cloud Drive) | Bidirectional |
+| Primary workstation ↔ NAS | NAS cloud-drive integration (vendor-specific app) | Bidirectional |
 | Primary workstation → NAS | Time Machine | System backup |
 | Cloud ↔ Mobile | Cloud drive native app | Bidirectional |
 

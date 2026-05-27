@@ -4,7 +4,7 @@
 
 This file will document system defaults applied during PC setup — parallel to `macos_defaults.md` / `defaults_settings.sh` for macOS.
 
-See [`device-schemas/pc-personal.md`](../device-schemas/pc-personal.md) for the target folder layout.
+See your own `~/Atlas/docs/gear/inventory.yaml` (your PC's device record) for the target folder layout and tooling inventory. The public schema template at `device-schemas/inventory.template.yaml` shows the shape.
 
 ---
 
