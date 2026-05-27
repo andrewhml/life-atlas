@@ -1,0 +1,137 @@
+# Atlas Device Inventory — TEMPLATE
+#
+# This is the schema reference and skeleton for an Atlas device inventory.
+# Copy this file to ~/Atlas/docs/<your gear category>/inventory.yaml on your
+# primary workstation, fill in your devices, and Atlas will sync it across
+# your own devices via the cloud-drive folder.
+#
+# This template intentionally uses placeholder values. Replace them with
+# your actual devices; remove device records that don't apply to you.
+#
+# Purpose of the inventory:
+#   1. Give AI assistants (Claude, Codex, Gemini, etc.) a compact, structured
+#      snapshot of your devices so tech-decision sessions start with full
+#      context instead of an interview. Similar to how a Brewfile gives an
+#      AI context on installed CLI tools.
+#   2. Serve as a machine-readable map across devices, surfaces, sync flows,
+#      and backup posture — useful for dashboards, audit scripts, and
+#      cross-device reconciliation.
+#
+# Conventions:
+#   - Sizes in GB/TB as decimal (1 TB = 1000 GB), matching vendor capacity
+#     labels. Use `_bytes` suffix when bytes-exact matters.
+#   - `null` or `tbd` = unknown / not yet measured. Don't guess.
+#   - `verified` dates are when a human (or tool) last confirmed the value.
+#   - Cross-references to plans/issues are bare strings, not links.
+#
+# Update cadence: whenever capacity, services, or backup flows change, or
+# when drift is caught during a /session-end pass.
+
+schema_version: 2  # Bumped from 1 → 2 when per-device `notes:` field was added
+                   # (plan 0009). Increment if you reshape the schema further.
+generated: YYYY-MM-DD
+generator: hand-curated
+
+# ---------------------------------------------------------------------------
+# DEVICES
+# ---------------------------------------------------------------------------
+#
+# Each device record should carry:
+#   id              — short kebab-case identifier (used as a stable key)
+#   display_name    — human-readable name
+#   role            — one of: primary_workstation, secondary_workstation,
+#                     company_workstation, primary_nas, secondary_nas,
+#                     mobile_primary, mobile_secondary, ereader,
+#                     external_storage_primary, external_storage_clone, …
+#                     (extend the role vocabulary to match your setup)
+#   os              — OS name + version string
+#   hardware        — model, cpu, ram, etc. (free-form structured object)
+#   storage         — list of storage objects (paths, capacity, filesystem)
+#   network         — hostname, IPs, ports (only if relevant — mobile devices
+#                     usually omit)
+#   sync            — cloud-drive mounts, NAS mounts, mesh-VPN membership
+#   identifiers     — serial numbers, MAC addresses (private — never commit)
+#   notes           — free-text markdown for narrative: workflow quirks,
+#                     history, decisions, gotchas, anti-patterns
+#
+# Drop fields that don't apply. Add fields you need. The yaml IS the schema.
+
+devices:
+
+  - id: example-primary-workstation
+    display_name: Example Laptop
+    role: primary_workstation
+    os: <e.g., macOS 26.5>
+    hardware:
+      cpu: <e.g., Apple M-series / AMD Ryzen / Intel Core>
+      model_identifier: <vendor model ID>
+      ram_gb: 16
+    storage:
+      - path: /
+        filesystem: <e.g., APFS, ext4, NTFS>
+        capacity_gb: 1000
+        used_gb: 500
+        free_gb: 500
+        verified: YYYY-MM-DD
+        role: primary_work
+    network:
+      hostname: <your hostname>
+      mac_addresses: []  # private — keep this file out of any public repo
+    sync:
+      cloud_drives:
+        - <cloud drive name>: <local mount path, e.g., ~/Atlas/>
+      mesh_vpn: <e.g., Tailscale machine name, or null>
+    identifiers:
+      serial: <serial number — private>
+    notes: |
+      Free-text markdown notes about this device. Use for:
+      - Workflow quirks (e.g., "GPU driver requires manual reinstall after every macOS minor")
+      - History (e.g., "Replaced previous laptop on YYYY-MM-DD; carried over Time Machine snapshot")
+      - Decisions (e.g., "Chose 16 GB RAM over 32 GB because workload is mostly IO-bound")
+      - Anti-patterns (e.g., "Don't symlink ~/Code into Atlas — Drive can't handle .git/")
+
+  - id: example-nas
+    display_name: Example NAS
+    role: primary_nas
+    os: <e.g., Synology DSM / UGREEN UGOS / TrueNAS>
+    hardware:
+      bays_total: 6
+      bays_populated: 4
+      ram_gb: 8
+    network:
+      hostname: <hostname>
+      ddns: <ddns name or null>
+      mesh_vpn: <Tailscale name or null>
+    storage:
+      pools:
+        - name: /volume1
+          backing: <e.g., 4x 10 TB HDD in RAID 5>
+          filesystem: <e.g., btrfs, ext4>
+          capacity_tb: 30
+          used_tb: 15
+          verified: YYYY-MM-DD
+    services:
+      - <e.g., Plex, Immich, Time Machine destination, …>
+    notes: |
+      Capture: why this NAS, what it backs up, what depends on it,
+      known issues, upgrade path.
+
+  - id: example-phone
+    display_name: Example Phone
+    role: mobile_primary
+    os: <e.g., iOS 18.x / Android 15>
+    storage:
+      - path: internal
+        capacity_gb: 256
+        used_gb: 120
+        verified: YYYY-MM-DD
+    apps:
+      - <cloud drive app>
+      - <photo backup app>
+    notes: |
+      Mobile devices are usually read-often / write-rarely against the
+      cloud drive. Note any capture pipelines (DSLR offload? photo sync?)
+      and any device-only content (call logs, SMS, app data).
+
+# Add more device records as needed. Keep field names consistent across
+# devices for the same concept so the file stays grep-friendly.
