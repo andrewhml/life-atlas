@@ -1,0 +1,40 @@
+# lint-denylist.example.txt — TEMPLATE deny-list (no real tokens).
+#
+# This is the seed template for the personal-data lint at
+# scripts/lint-no-personal-data.sh.
+#
+# The REAL deny-list lives OUTSIDE this repo at
+#   ${LINT_DENYLIST:-$HOME/Atlas/config/atlas/lint-denylist.txt}
+# cloud-synced via Atlas, never committed.
+#
+# To seed the real deny-list on a new device:
+#   mkdir -p ~/Atlas/config/atlas
+#   cp scripts/lint-denylist.example.txt ~/Atlas/config/atlas/lint-denylist.txt
+# Then replace the EXAMPLE_* placeholders with your actual tokens.
+#
+# ── Format ────────────────────────────────────────────────────────
+#  - One regex per line, passed straight to `grep -E`. NO wrapping.
+#  - Full-line comments start with `#` (leading whitespace allowed).
+#  - Blank lines ignored.
+#
+# ── IMPORTANT: pick the right shape per token ─────────────────────
+# The engine does NOT auto-add word boundaries. Token shape determines
+# whether `\b` is appropriate. Pick from the three sections below.
+
+# ── Word-like tokens (codenames, hostnames, employer names) ───────
+# Bare names like "EXAMPLE_NAS" that should match only as whole words.
+# Wrap with \b so "EXAMPLE_NAS_SUFFIX" or "MyEXAMPLE_NAS" don't false-match.
+\bEXAMPLE_NAS_NAME\b
+\bEXAMPLE_WORKSTATION_TAG\b
+\bEXAMPLE_EMPLOYER\b
+
+# ── Path-like tokens (user-home, mount points, private repo paths) ──
+# These contain `/` or `:` which are NOT word characters — so \b will
+# SILENTLY FAIL to anchor them. Use the raw escaped literal instead.
+/Users/EXAMPLE_USER
+/Volumes/EXAMPLE_VOLUME
+EXAMPLE_USER/example-private-repo
+
+# ── Email-like tokens ─────────────────────────────────────────────
+# Escape the dot so it matches a literal `.` rather than any character.
+example\.user@example\.com
