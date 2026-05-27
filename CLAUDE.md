@@ -76,9 +76,10 @@ When the user says "workspace" and context is ambiguous, ask which one.
 ```
 life-atlas/
 ├── .claude/                # Skills, commands, settings for Claude Code
-├── device-schemas/         # Folder structure per device
+├── device-schemas/         # Device-inventory yaml schema + README
 ├── folder-schemas/         # Conceptual schemas per top-level folder
 ├── environment/            # Shell scripts and environment config
+├── scripts/                # Personal-data lint + git-hook installer
 ├── bookmarks/              # Bookmark strategy (not bookmark data)
 ├── docs/                   # Plans, session scratch (scratch is gitignored)
 ├── CLAUDE.md               # This file
