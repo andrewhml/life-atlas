@@ -2,12 +2,12 @@
 
 `~/Atlas/config/` holds cross-device configuration — the settings, themes, shortcuts, and dotfile snapshots that make a new workstation feel like a known one.
 
-**Two sync models, picked per file:**
+**Sync models, picked per file:**
 
-- **Snapshot** (one-way copy `$HOME → Atlas`) — for files something *writes back to* at runtime, or where a startup-path dependency on Drive is unacceptable. Shell dotfiles (zsh sources them on every interactive shell), Claude Code's `settings.json` (runtime writes), git/ssh config.
-- **Symlink** (`$HOME` entry points into Atlas) — for files you edit deliberately and infrequently, where zero-friction cross-device propagation matters more than write-race safety. Claude Code's `CLAUDE.md`, `statusline.sh`, and skill library.
+- **Snapshot** (one-way copy `$HOME → Atlas`) — for files something *writes back to* at runtime, or where a startup-path dependency on Drive is unacceptable. Shell dotfiles, git/ssh config, terminal emulator config.
+- **Read-at-setup** — files copied from Atlas to live paths once during new-machine bring-up. Wallpapers, templates, themes.
 
-The per-section tables below say which model applies to what.
+The per-section tables below say which model applies to what. Atlas does NOT sync everything — Claude Code's `~/.claude/` is the notable exception, managed out-of-band via a dedicated git repo (see [Claude Code section](#claude-code-out-of-band) below).
 
 ---
 
@@ -16,7 +16,7 @@ The per-section tables below say which model applies to what.
 | Subfolder | Contents | Sync model |
 |---|---|---|
 | `ai/` | Prompts, persona files, model configs | Snapshot / manual |
-| `apps/` | App-specific exports (settings bundles, preference plists, Claude Code config) | Snapshot / manual; `apps/claude/` via `environment/sync-claude-config.sh` |
+| `apps/` | App-specific exports (settings bundles, preference plists) | Snapshot / manual per app |
 | `desktop-images/` | Wallpapers set across devices | Read-at-setup |
 | `keys/` | SSH keys, GPG keys, recovery material | **Never** accessed by automation |
 | `settings/` | OS-level settings exports | Snapshot |
@@ -50,46 +50,30 @@ Direction is one-way: `$HOME` is the source of truth. The sync script copies for
 
 ---
 
-## 🤖 Claude Code (hybrid: symlink + snapshot)
+## 🤖 Claude Code (out-of-band)
 
-Live config under `~/.claude/` is mostly per-machine runtime state (conversation history, sessions, telemetry, cache, MCP auth, file-history, machine-scoped permission grants). None of that travels. Only four kinds of content do, and they travel via two different mechanisms depending on whether Claude Code *writes back* to the file.
+Claude Code's `~/.claude/` config does NOT live under Atlas. It's a git clone of a private `claude-harness` repo, kept in sync across machines via a shell wrapper that runs `git pull --rebase --autostash` before launching Claude Code. Secrets live in macOS Keychain (referenced by per-server wrappers under `mcp-wrappers/`); per-machine runtime state (`sessions/`, `history.jsonl`, `cache/`, `settings.local.json`, telemetry, MCP auth, file-history) is gitignored and never travels.
 
-### Symlinked (read-mostly content)
+### Why out-of-band
 
-These are edited deliberately and infrequently by you, not by Claude Code's runtime. Symlinks make Drive the bus — edit on any machine, the other sees it within the next Drive sync. No manual sync step.
+- **`settings.json` is rewritten by Claude Code's runtime** (theme toggles, `/model`, MCP server adds, permission grants). A symlink into Atlas would race against Drive's sync daemon and produce `(Conflict)` files; a snapshot would lag every edit until the sync script runs.
+- **Skill and MCP-registry edits need a hard secret-audit boundary.** A dedicated git repo runs `gitleaks` on every commit; Drive sync can't gate on that.
+- **Per-machine runtime state is large and noisy.** A git `.gitignore` filters it cleanly; Drive sync would churn on every Claude session.
 
-| Live path | Atlas target |
+### Where to go for details
+
+| Topic | File |
 |---|---|
-| `~/.claude/CLAUDE.md` | `~/Atlas/config/apps/claude/CLAUDE.md` |
-| `~/.claude/statusline.sh` | `~/Atlas/config/apps/claude/statusline.sh` |
-| `~/.claude/skills/<name>` | `~/Atlas/config/ai/claude-skills/skills/<name>` (one symlink per skill) |
+| Initial seeding, new-device clone, daily ops, wrapper, secret model | [`environment/claude-setup.md`](../environment/claude-setup.md) |
+| Per-machine Keychain provisioning script | [`environment/setup-claude-secrets.sh`](../environment/setup-claude-secrets.sh) |
 
-### Snapshotted (write-back content)
-
-`settings.json` is rewritten by Claude Code's runtime when you toggle themes, change `/model`, add MCP servers, grant permissions. Symlinking it would race against Drive's sync daemon and risk `settings (Conflict).json`. Snapshot keeps Claude Code's write path local and propagation explicit.
-
-| Live path | Atlas snapshot |
-|---|---|
-| `~/.claude/settings.json` | `~/Atlas/config/apps/claude/settings.json` |
-
-Direction is one-way: `$HOME` is the source of truth. The sync script (`environment/sync-claude-config.sh`) carries an **allowlist guard** — refuses any path under `~/.claude/` other than `settings.json`. New-machine restore (including the symlink steps for the read-mostly files) lives in [`environment/claude-setup.md`](../environment/claude-setup.md).
-
-### Why two Atlas locations (`apps/claude/` and `ai/claude-skills/`)
-
-`apps/claude/` holds Claude-Code-specific user config. `ai/claude-skills/` holds the shared skill library — conceptually product-agnostic, could back any AI app's skill system. The split predates the apps/claude/ section; consolidating it later is optional, not required.
-
-### Never travels
-
-- `~/.claude/settings.local.json` — machine-scoped permission grants. Each device grows its own.
-- Everything else under `~/.claude/` — history, sessions, projects, cache, MCP auth, telemetry, file-history, shell-snapshots, session-env, tasks, backups, ide, downloads, paste-cache, plugins. All runtime state.
-
-New-machine setup steps live in [`environment/shell-setup.md`](../environment/shell-setup.md) (shell + git + ssh + terminal) and [`environment/claude-setup.md`](../environment/claude-setup.md) (Claude Code).
+The shell side of new-machine bring-up (zsh + git + ssh + terminal) lives in [`environment/shell-setup.md`](../environment/shell-setup.md); it precedes the Claude harness clone.
 
 ---
 
 ## 🚫 Anti-patterns
 
 - Do not symlink **shell startup files** (`.zprofile`, `.zshrc`, `.zshenv`) into `~/Atlas/`. Drive sync sits on shell startup — adds latency and creates a hard dependency on Atlas being mounted. Snapshot pattern only for shell.
-- Do not symlink **files that get written by their owning runtime** (e.g., Claude Code's `settings.json`) into `~/Atlas/`. Write races against Drive's sync daemon produce `(Conflict)` files. Snapshot only.
-- Do not edit snapshots in `~/Atlas/config/shell/`, `~/Atlas/config/terminal/`, or `~/Atlas/config/apps/claude/settings.json` directly — the next sync will overwrite them. Edit under `$HOME` and run the relevant sync script.
+- Do not symlink **files that get written by their owning runtime** into `~/Atlas/`. Write races against Drive's sync daemon produce `(Conflict)` files. Snapshot only — or, when the writer is too active even for snapshot (and the audit surface is wide enough to justify the cost), move the config out of Atlas entirely into a dedicated git repo. That's the route taken for `~/.claude/`.
+- Do not edit snapshots in `~/Atlas/config/shell/` or `~/Atlas/config/terminal/` directly — the next sync will overwrite them. Edit under `$HOME` and run the relevant sync script.
 - Do not put secrets anywhere except `keys/`, and never let automation read `keys/`.
