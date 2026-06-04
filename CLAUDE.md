@@ -130,7 +130,7 @@ Atlas is the operational config store, not a no-go zone. The boundary is by subt
 - **Rest of `~/Atlas/config/`** — never read or write without explicit per-task approval.
 - **`~/Atlas/docs/gear/`** — read and write OK. Device inventory (`inventory.yaml`) — the single source of truth for AI-context use cases, analogous to the Brewfile for tools.
 - **Rest of `~/Atlas/docs/`** — never read or write. Personal documents (identity, health, finance, legal, etc.). Owned by the cloud drive app and the human.
-- **`~/Atlas/workspace/atlas-ops/`** — read and write OK. The user's personal execution plans (formerly in this repo's `docs/plans/`).
+- **`~/Atlas/workspace/atlas-ops/`** — read and write OK (legacy; now empty). The user's personal execution plans moved to the private **Metis** Obsidian vault (`Ergon/Plans/`) on 2026-06-04 — git-backed + relationship-linked. This grant is now vestigial and safe to remove.
 - **Rest of `~/Atlas/workspace/`, `~/Atlas/archive/`, `~/Atlas/share/`** — never read or write without explicit per-task approval. These hold user-owned content.
 - **Never commit** any content from `~/Atlas/docs/` (other than the inventory schema template), `~/Atlas/config/keys/`, or any other personal-data path into this repo.
 - **Cloud-sync etiquette:** when writing to `~/Atlas/config/atlas/` or `~/Atlas/docs/gear/`, write to a scratch path first then `mv` into place (atomic from Drive's perspective). Avoid in-place edits during active sync.
@@ -170,7 +170,7 @@ Claude Code's permissions for this repo are configured in `.claude/settings.json
 - **Write access (Atlas):** three narrow subtrees only:
   - `~/Atlas/config/atlas/*` — cross-device pattern→reference bindings + the lint deny-list (see "Pattern→reference bindings" below)
   - `~/Atlas/docs/gear/*` — device inventory (the filled-in `inventory.yaml` lives here; public repo holds only the template)
-  - `~/Atlas/workspace/atlas-ops/*` — operational plans (the user's personal execution logs)
+  - `~/Atlas/workspace/atlas-ops/*` — legacy (now empty); operational plans moved to the Metis vault `Ergon/Plans/` (2026-06-04). Grant retained but unused — safe to remove.
 - **Bash allowed:** read-only git (`status`, `log`, `branch`, `diff`, `stash`, `show`), plus `gh issue`/`gh label` for session workflow
 - **No write access** to any other repo path without explicit user approval
 - **No access** to `~/Atlas/config/keys/` under any circumstances (segregation is structural — no allow rule covers it, not a deny-below-allow)

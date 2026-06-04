@@ -7,6 +7,8 @@
 
 ---
 
+> **Update 2026-06-04:** the personal execution plans this plan relocated into `~/Atlas/workspace/atlas-ops/plans/` were later moved again into the private **Metis** Obsidian vault (`Ergon/Plans/`, `type: plan`). The `atlas-ops` references below are historical — accurate to what this (completed) plan did. Current home: see the vault `Meta.md`.
+
 ## Goal
 
 Restructure life-atlas so its public state is a reusable guide (the **HOW** — pattern, conventions, scripts, templates) and all personal data (the **WHAT** — device names, inventories, operational plans, family/geo references) lives in the right `~/Atlas/` subtrees per the Atlas pattern this project itself documents.
