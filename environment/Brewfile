@@ -42,6 +42,10 @@ brew "tree"                      # directory tree view
 brew "wget"                      # HTTP/FTP fetcher
 brew "htop"                      # interactive process viewer
 
+# ── CLI: remote / persistent sessions ─────────────────────────────
+brew "mosh"                      # UDP SSH that survives Wi-Fi drops/sleep — primary way to reach the always-on host
+brew "tmux"                      # persistent + scrollable sessions; run inside mosh on the host (mosh has no scrollback)
+
 # ── CLI: language runtimes ────────────────────────────────────────
 brew "python@3.12"               # explicit pin; tools (uvx, etc.) follow
 

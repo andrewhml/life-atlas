@@ -2,7 +2,7 @@
 
 This directory holds **meta-plans about the public guide itself** — multi-step changes to how `life-atlas` is structured, what it documents, what conventions it codifies.
 
-Operational plans (your own setup work, photo lifecycle, device-onboarding journals, etc.) belong in your own private cloud-drive workspace, not in this public repo. The reference implementation keeps them at `~/Atlas/workspace/atlas-ops/plans/`.
+Operational plans (your own setup work, photo lifecycle, device-onboarding journals, etc.) belong in your own private workspace, not in this public repo. The reference implementation keeps them in a private Obsidian vault (Metis), under `Ergon/Plans/` — relationship-linked to its initiatives and tasks. (They previously lived in cloud-drive at `~/Atlas/workspace/atlas-ops/plans/`; moved into the vault 2026-06-04.)
 
 ---
 
@@ -25,7 +25,7 @@ In scope here:
 - Tooling decisions that ship in this repo (lint scripts, hooks, audit/skill behavior)
 - Documentation strategy changes (what belongs in README vs CLAUDE.md vs guides)
 
-Out of scope (handle in your private `atlas-ops/plans/`):
+Out of scope (handle in your private vault plans, e.g. Metis `Ergon/Plans/`):
 - Setting up your own devices
 - Migrating your own data
 - Backups, photo workflows, hardware purchases, account hygiene
