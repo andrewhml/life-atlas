@@ -262,7 +262,7 @@ claude() {
     return 1
   fi
 
-  out=$(cd ~/.claude && git pull --rebase --autostash 2>&1)
+  out=$(git -C ~/.claude pull --rebase --autostash 2>&1)
   ec=$?
 
   if (( ec != 0 )); then
